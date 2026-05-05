@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coordination of Benefits: Who Pays First?</title>
+  <style>
+    :root{
+      --ink:#182033;
+      --muted:#5e6575;
+      --bg1:#fff8f1;
+      --bg2:#f4fbff;
+      --card:#ffffff;
+      --navy:#26345f;
+      --blue:#4f8cff;
+      --teal:#21b7a8;
+      --green:#6bc46d;
+      --yellow:#ffd166;
+      --orange:#ff9f43;
+      --pink:#ff6fae;
+      --purple:#8b5cf6;
+      --red:#ff5a63;
+      --shadow:0 18px 38px rgba(38,52,95,.16);
+      --softShadow:0 10px 22px rgba(38,52,95,.12);
+      --radius:24px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 10% 20%, rgba(255,209,102,.36), transparent 28%),
+        radial-gradient(circle at 90% 10%, rgba(255,111,174,.28), transparent 25%),
+        radial-gradient(circle at 70% 90%, rgba(33,183,168,.25), transparent 30%),
+        linear-gradient(135deg,var(--bg1),var(--bg2));
+      min-height:100vh;
+    }
+    header{
+      padding:34px 18px 18px;
+      text-align:center;
+      position:relative;
+      overflow:hidden;
+    }
+    .badge{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      padding:8px 14px;
+      background:#fff;
+      border:2px solid rgba(38,52,95,.1);
+      border-radius:999px;
+      box-shadow:var(--softShadow);
+      font-weight:800;
+      color:var(--navy);
+      margin-bottom:12px;
+    }
+    h1{
+      font-size:clamp(2rem,5vw,4.5rem);
+      line-height:1;
+      margin:8px auto 10px;
+      max-width:980px;
+      letter-spacing:-.05em;
+    }
+    .subtitle{
+      max-width:820px;
+      margin:0 auto;
+      font-size:1.1rem;
+      color:var(--muted);
+      line-height:1.55;
+      font-weight:600;
+    }
+    .wrap{max-width:1180px;margin:0 auto;padding:18px}
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:20;
+      backdrop-filter:blur(14px);
+      background:rgba(255,255,255,.72);
+      border-bottom:1px solid rgba(38,52,95,.08);
+    }
+    .nav{
+      max-width:1180px;
+      margin:0 auto;
+      display:flex;
+      gap:10px;
+      overflow:auto;
+      padding:12px 18px;
+    }
+    .nav button,.primaryBtn,.ghostBtn{
+      border:0;
+      cursor:pointer;
+      border-radius:18px;
+      padding:12px 16px;
+      font-weight:900;
+      color:white;
+      box-shadow:var(--softShadow);
+      transition:.2s transform,.2s box-shadow,.2s filter;
+      white-space:nowrap;
+    }
+    .nav button:hover,.primaryBtn:hover,.ghostBtn:hover,.choice:hover{transform:translateY(-2px);filter:saturate(1.08)}
+    .nav button:nth-child(1){background:linear-gradient(135deg,var(--blue),var(--purple))}
+    .nav button:nth-child(2){background:linear-gradient(135deg,var(--teal),var(--green))}
+    .nav button:nth-child(3){background:linear-gradient(135deg,var(--orange),var(--yellow));color:#3a2500}
+    .nav button:nth-child(4){background:linear-gradient(135deg,var(--pink),var(--purple))}
+    .nav button:nth-child(5){background:linear-gradient(135deg,var(--navy),#5363a8)}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px}
+    .card{
+      background:rgba(255,255,255,.92);
+      border:1px solid rgba(38,52,95,.08);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:24px;
+      position:relative;
+      overflow:hidden;
+    }
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:auto -40px -70px auto;
+      width:180px;height:180px;
+      border-radius:50%;
+      background:rgba(79,140,255,.12);
+      pointer-events:none;
+    }
+    .span6{grid-column:span 6}.span4{grid-column:span 4}.span8{grid-column:span 8}.span12{grid-column:span 12}
+    @media(max-width:850px){.span6,.span4,.span8{grid-column:span 12}.nav{padding-inline:10px}.card{padding:18px}}
+    h2{font-size:clamp(1.55rem,3vw,2.35rem);margin:0 0 12px;letter-spacing:-.03em}
+    h3{font-size:1.25rem;margin:0 0 10px}
+    p{line-height:1.6;color:var(--muted);font-weight:600}
+    .bigRule{
+      padding:18px;
+      border-radius:22px;
+      background:linear-gradient(135deg,#26345f,#4f8cff);
+      color:white;
+      font-size:1.3rem;
+      font-weight:950;
+      line-height:1.35;
+      box-shadow:var(--softShadow);
+    }
+    .pillrow{display:flex;flex-wrap:wrap;gap:10px;margin:15px 0}
+    .pill{
+      padding:10px 12px;
+      border-radius:999px;
+      font-weight:950;
+      box-shadow:0 8px 16px rgba(0,0,0,.08);
+      border:2px solid rgba(255,255,255,.8);
+    }
+    .pill.blue{background:#d8e6ff;color:#14326b}.pill.green{background:#ddf7df;color:#145d22}.pill.pink{background:#ffe0ef;color:#7b1745}.pill.yellow{background:#fff1bd;color:#614300}.pill.purple{background:#ece3ff;color:#442090}
+    .pathway{display:grid;gap:12px;margin-top:14px}
+    .step{
+      display:grid;
+      grid-template-columns:52px 1fr;
+      gap:14px;
+      align-items:center;
+      padding:14px;
+      border-radius:20px;
+      background:#fff;
+      border:1px solid rgba(38,52,95,.08);
+      box-shadow:0 8px 18px rgba(38,52,95,.08);
+    }
+    .num{
+      width:52px;height:52px;border-radius:17px;
+      display:grid;place-items:center;
+      font-size:1.2rem;font-weight:1000;color:white;
+      background:linear-gradient(135deg,var(--pink),var(--orange));
+      box-shadow:0 8px 16px rgba(255,111,174,.28);
+    }
+    .step b{font-size:1.05rem}.step small{display:block;color:var(--muted);font-weight:700;margin-top:3px}
+    table{width:100%;border-collapse:separate;border-spacing:0 10px;margin-top:12px}
+    th{text-align:left;color:#51607a;font-size:.86rem;text-transform:uppercase;letter-spacing:.08em}
+    td{background:#fff;padding:14px;border-top:1px solid rgba(38,52,95,.08);border-bottom:1px solid rgba(38,52,95,.08);font-weight:800;color:#29344f}
+    td:first-child{border-left:1px solid rgba(38,52,95,.08);border-radius:16px 0 0 16px}
+    td:last-child{border-right:1px solid rgba(38,52,95,.08);border-radius:0 16px 16px 0}
+    .gameBox{
+      background:linear-gradient(135deg,rgba(255,209,102,.34),rgba(255,111,174,.18));
+      border:2px dashed rgba(38,52,95,.18);
+      padding:18px;
+      border-radius:24px;
+    }
+    .questionCard{
+      margin-top:16px;
+      padding:20px;
+      border-radius:24px;
+      background:rgba(255,255,255,.95);
+      box-shadow:var(--shadow);
+      border:1px solid rgba(38,52,95,.08);
+    }
+    .qTop{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+    .score{
+      display:flex;gap:10px;flex-wrap:wrap;
+      font-weight:950;
+    }
+    .score span{padding:9px 12px;border-radius:999px;background:#fff;box-shadow:var(--softShadow)}
+    .questionText{font-size:1.15rem;color:#202a43;font-weight:850;line-height:1.5;margin:10px 0 16px}
+    .choices{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    @media(max-width:720px){.choices{grid-template-columns:1fr}}
+    .choice{
+      min-height:78px;
+      display:flex;
+      align-items:center;
+      justify-content:flex-start;
+      gap:12px;
+      text-align:left;
+      border:0;
+      cursor:pointer;
+      padding:15px;
+      border-radius:20px;
+      font-weight:900;
+      color:#172036;
+      background:linear-gradient(135deg,#eef5ff,#ffffff);
+      border:2px solid rgba(38,52,95,.08);
+      box-shadow:0 8px 17px rgba(38,52,95,.08);
+      line-height:1.35;
+    }
+    .choice .letter{
+      flex:0 0 38px;
+      width:38px;height:38px;border-radius:13px;
+      display:grid;place-items:center;
+      color:white;background:var(--navy);font-weight:1000;
+    }
+    .choice.correct{background:linear-gradient(135deg,#dff8e3,#ffffff);border-color:#4caf50}
+    .choice.wrong{background:linear-gradient(135deg,#ffe0e4,#ffffff);border-color:#ff5a63}
+    .choice:disabled{cursor:not-allowed;opacity:.95;transform:none}
+    .feedback{
+      display:none;
+      margin-top:14px;
+      padding:16px;
+      border-radius:20px;
+      background:#f6f8ff;
+      border-left:8px solid var(--blue);
+      color:#26345f;
+      font-weight:750;
+      line-height:1.55;
+    }
+    .btnRow{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+    .primaryBtn{background:linear-gradient(135deg,var(--blue),var(--purple));font-size:1rem}
+    .ghostBtn{background:linear-gradient(135deg,var(--teal),var(--green));font-size:1rem;color:#062b27}
+    .miniCards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+    @media(max-width:950px){.miniCards{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:560px){.miniCards{grid-template-columns:1fr}}
+    .mini{
+      padding:16px;
+      border-radius:20px;
+      color:#172036;
+      min-height:142px;
+      box-shadow:var(--softShadow);
+      border:2px solid rgba(255,255,255,.7);
+    }
+    .mini:nth-child(1){background:linear-gradient(135deg,#d8e6ff,#fff)}
+    .mini:nth-child(2){background:linear-gradient(135deg,#ddf7df,#fff)}
+    .mini:nth-child(3){background:linear-gradient(135deg,#fff1bd,#fff)}
+    .mini:nth-child(4){background:linear-gradient(135deg,#ffe0ef,#fff)}
+    .mini b{display:block;font-size:1.05rem;margin-bottom:6px}.mini span{color:#5e6575;font-weight:700;line-height:1.45}
+    .flipGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}
+    @media(max-width:900px){.flipGrid{grid-template-columns:1fr}}
+    .flip{perspective:1000px;min-height:190px;cursor:pointer}
+    .flipInner{position:relative;width:100%;height:100%;min-height:190px;transition:transform .6s;transform-style:preserve-3d}
+    .flip.flipped .flipInner{transform:rotateY(180deg)}
+    .front,.back{
+      position:absolute;inset:0;
+      backface-visibility:hidden;
+      border-radius:24px;
+      padding:20px;
+      box-shadow:var(--shadow);
+      border:2px solid rgba(255,255,255,.7);
+      display:flex;flex-direction:column;justify-content:center;
+    }
+    .front{background:linear-gradient(135deg,#26345f,#8b5cf6);color:white}.front p,.front h3{color:white}
+    .back{background:linear-gradient(135deg,#fff,#fff1bd);transform:rotateY(180deg)}
+    .back p{color:#3d4352}
+    .callout{
+      margin-top:14px;
+      padding:16px;
+      border-radius:20px;
+      background:linear-gradient(135deg,#fff,#f1f7ff);
+      border:1px solid rgba(38,52,95,.08);
+      box-shadow:var(--softShadow);
+      font-weight:850;
+      line-height:1.55;
+    }
+    .danger{border-left:8px solid var(--red)}.success{border-left:8px solid var(--green)}.purpleLine{border-left:8px solid var(--purple)}
+    .dragArea{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+    @media(max-width:800px){.dragArea{grid-template-columns:1fr}}
+    .dropZone,.bank{
+      min-height:210px;
+      border-radius:24px;
+      padding:16px;
+      background:rgba(255,255,255,.75);
+      border:2px dashed rgba(38,52,95,.18);
+    }
+    .sortItem{
+      display:block;
+      width:100%;
+      border:0;
+      cursor:pointer;
+      margin:8px 0;
+      padding:12px;
+      border-radius:17px;
+      background:linear-gradient(135deg,#ffe0ef,#fff1bd);
+      font-weight:950;
+      box-shadow:0 8px 15px rgba(38,52,95,.08);
+      text-align:left;
+    }
+    .footerNote{text-align:center;color:#687083;font-weight:700;padding:25px}
+    .hidden{display:none!important}
+    @media print{
+      .topbar,.btnRow,.nav{display:none!important}
+      body{background:white}.card,.questionCard{box-shadow:none;border:1px solid #ccc;break-inside:avoid}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="badge">Medical Billing & Coding Game</div>
+    <h1>Coordination of Benefits: Who Pays First?</h1>
+    <p class="subtitle">Learn how to decide primary, secondary, and tertiary insurance with colorful rules, case examples, mini-games, and concept-checking questions.</p>
+  </header>
+
+  <div class="topbar">
+    <nav class="nav">
+      <button onclick="jump('cob')">COB Basics</button>
+      <button onclick="jump('rules')">Payment Rules</button>
+      <button onclick="jump('birthday')">Birthday Rule</button>
+      <button onclick="jump('practice')">Practice Game</button>
+      <button onclick="window.print()">Print / Save PDF</button>
+    </nav>
+  </div>
+
+  <main class="wrap">
+    <section id="cob" class="grid">
+      <div class="card span8">
+        <h2>First: What is Coordination of Benefits?</h2>
+        <p>Coordination of Benefits, or COB, is the system used when a patient has more than one insurance plan. The biller must decide which plan pays first, second, and sometimes third.</p>
+        <div class="bigRule">COB answers one question: Which insurance gets the first bill?</div>
+        <div class="pillrow">
+          <span class="pill blue">Primary = pays first</span>
+          <span class="pill green">Secondary = pays after</span>
+          <span class="pill yellow">Tertiary = pays third</span>
+          <span class="pill pink">Medicaid = usually last</span>
+        </div>
+      </div>
+      <div class="card span4">
+        <h2>Do Not Guess</h2>
+        <p>Students often guess by choosing the plan with the best benefits or lowest copay. That is not the rule.</p>
+        <div class="callout danger">The plan with the lowest copay is not automatically primary.</div>
+        <div class="callout success">Use the COB rules in order.</div>
+      </div>
+
+      <div class="card span12">
+        <h2>The Insurance Line-Up</h2>
+        <div class="miniCards">
+          <div class="mini"><b>Subscriber Plan</b><span>The patient owns this plan. Usually pays before a dependent plan.</span></div>
+          <div class="mini"><b>Active Employment</b><span>Current job coverage usually pays before retiree or COBRA coverage.</span></div>
+          <div class="mini"><b>Injury Source</b><span>Work injury may go to workers’ compensation before regular insurance.</span></div>
+          <div class="mini"><b>Last Resort</b><span>Medicaid usually waits until other available payers are billed.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="rules" class="grid">
+      <div class="card span6">
+        <h2>Core COB Decision Pathway</h2>
+        <div class="pathway">
+          <div class="step"><div class="num">1</div><div><b>Ask why the patient is being seen.</b><small>Work injury? Auto accident? Ordinary visit?</small></div></div>
+          <div class="step"><div class="num">2</div><div><b>Find the patient’s role on each plan.</b><small>Subscriber usually pays before dependent.</small></div></div>
+          <div class="step"><div class="num">3</div><div><b>Compare active, retiree, and COBRA coverage.</b><small>Active employment usually comes first.</small></div></div>
+          <div class="step"><div class="num">4</div><div><b>If plans are equal, check length of coverage.</b><small>The longer active plan may become primary.</small></div></div>
+          <div class="step"><div class="num">5</div><div><b>If Medicaid is involved, place it near the end.</b><small>Medicaid is usually payer of last resort.</small></div></div>
+        </div>
+      </div>
+      <div class="card span6">
+        <h2>Rule Table</h2>
+        <table>
+          <thead><tr><th>Situation</th><th>Usually Primary</th></tr></thead>
+          <tbody>
+            <tr><td>Own plan + spouse’s plan</td><td>Own subscriber plan</td></tr>
+            <tr><td>Active plan + retiree plan</td><td>Active employee plan</td></tr>
+            <tr><td>Active plan + COBRA plan</td><td>Active employee plan</td></tr>
+            <tr><td>Two equal active plans</td><td>Longer coverage plan</td></tr>
+            <tr><td>Regular plan + Medicaid</td><td>Regular plan first</td></tr>
+            <tr><td>Work injury visit</td><td>Workers’ compensation</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card span12">
+        <h2>Click-to-Flip Memory Cards</h2>
+        <p>Click each card to reveal the rule.</p>
+        <div class="flipGrid">
+          <div class="flip" onclick="this.classList.toggle('flipped')"><div class="flipInner"><div class="front"><h3>Subscriber vs. Dependent</h3><p>Who pays first?</p></div><div class="back"><h3>Rule</h3><p>The patient’s own subscriber plan usually pays before a plan where the patient is listed as a dependent.</p></div></div></div>
+          <div class="flip" onclick="this.classList.toggle('flipped')"><div class="flipInner"><div class="front"><h3>Active vs. Retired</h3><p>Which plan leads?</p></div><div class="back"><h3>Rule</h3><p>Active employee coverage usually pays before retiree or COBRA coverage.</p></div></div></div>
+          <div class="flip" onclick="this.classList.toggle('flipped')"><div class="flipInner"><div class="front"><h3>Medicaid</h3><p>Where does it go?</p></div><div class="back"><h3>Rule</h3><p>Medicaid usually pays last after other responsible payers have been billed.</p></div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="birthday" class="grid">
+      <div class="card span6">
+        <h2>Now Add the Birthday Rule</h2>
+        <p>The birthday rule is not all of COB. It is a special rule for a dependent child covered by both parents’ plans.</p>
+        <div class="bigRule">Earlier birthday in the calendar year = primary plan.</div>
+        <div class="callout purpleLine">Use month and day only. The year does not matter.</div>
+      </div>
+      <div class="card span6">
+        <h2>Same Birthday Tie-Breaker</h2>
+        <p>If both parents have the same birthday, check which parent has been covered by their plan longer.</p>
+        <table>
+          <thead><tr><th>If...</th><th>Then...</th></tr></thead>
+          <tbody>
+            <tr><td>Different birthdays</td><td>Earlier calendar birthday</td></tr>
+            <tr><td>Same birthday</td><td>Longer coverage wins</td></tr>
+            <tr><td>Court order exists</td><td>Follow the court order</td></tr>
+            <tr><td>No order, separated</td><td>Custodial household first</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card span12">
+        <h2>Custody and Step-Parent Order</h2>
+        <div class="bigRule">Separated with no court order: child’s household comes first.</div>
+        <div class="pathway">
+          <div class="step"><div class="num">1</div><div><b>Custodial parent</b><small>The parent the child lives with.</small></div></div>
+          <div class="step"><div class="num">2</div><div><b>Custodial parent’s spouse</b><small>The step-parent in the child’s household.</small></div></div>
+          <div class="step"><div class="num">3</div><div><b>Non-custodial parent</b><small>The parent outside the child’s main household.</small></div></div>
+          <div class="step"><div class="num">4</div><div><b>Non-custodial parent’s spouse</b><small>The step-parent in the other household.</small></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="practice" class="grid">
+      <div class="card span12">
+        <h2>Practice Game: Who Pays First?</h2>
+        <p>Answer each question. The choices are randomized each time the page loads. The correct answer is not always in the same position, and answer choices are written with similar length so students cannot game the test.</p>
+        <div class="score">
+          <span id="scoreText">Score: 0 / 0</span>
+          <span id="streakText">Streak: 0</span>
+          <span id="levelText">Level: Getting Started</span>
+        </div>
+        <div id="quiz" class="questionCard"></div>
+      </div>
+
+      <div class="card span12">
+        <h2>Sorting Challenge</h2>
+        <p>Click each payer in the correct order for a separated-parent case with no court order. Scenario: child lives with mother. Mother, step-father, father, and step-mother all have insurance.</p>
+        <div class="dragArea">
+          <div class="bank" id="bank"><h3>Payer Bank</h3></div>
+          <div class="dropZone" id="answerZone"><h3>Your Order</h3></div>
+        </div>
+        <div class="btnRow">
+          <button class="primaryBtn" onclick="checkSort()">Check Order</button>
+          <button class="ghostBtn" onclick="resetSort()">Reset Sort</button>
+        </div>
+        <div id="sortFeedback" class="feedback"></div>
+      </div>
+    </section>
+
+    <p class="footerNote">Teacher note: This activity introduces COB logic for educational practice. Always follow the payer contract, plan policy, state rules, and current billing guidelines in real claims processing.</p>
+  </main>
+
+  <script>
+    const questions = [
+      {
+        category:"COB Basics",
+        question:"A patient has insurance through her own job and also through her spouse. Which plan is usually primary?",
+        choices:[
+          {text:"Her own employer plan", correct:true},
+          {text:"Her spouse employer plan", correct:false},
+          {text:"The lower copay plan", correct:false},
+          {text:"The better benefit plan", correct:false}
+        ],
+        rationale:"The patient is the subscriber on her own employer plan. Subscriber coverage usually pays before dependent coverage."
+      },
+      {
+        category:"COB Basics",
+        question:"A patient is covered as a dependent on one plan and subscriber on another plan. Which rule should guide the biller first?",
+        choices:[
+          {text:"Subscriber plan first", correct:true},
+          {text:"Dependent plan first", correct:false},
+          {text:"Lowest deductible first", correct:false},
+          {text:"Highest premium first", correct:false}
+        ],
+        rationale:"When the patient owns one plan and is only a dependent on another, the subscriber plan usually pays first."
+      },
+      {
+        category:"Active Coverage",
+        question:"A patient has active job insurance and retiree coverage from a former job. Which plan usually pays first?",
+        choices:[
+          {text:"Active job insurance", correct:true},
+          {text:"Retiree job coverage", correct:false},
+          {text:"The older policy plan", correct:false},
+          {text:"The smaller copay plan", correct:false}
+        ],
+        rationale:"Active employee coverage usually pays before retiree coverage. Current active work status matters."
+      },
+      {
+        category:"COBRA",
+        question:"A patient has new active coverage and COBRA from an old employer. Which plan usually comes first?",
+        choices:[
+          {text:"New active coverage", correct:true},
+          {text:"Old COBRA coverage", correct:false},
+          {text:"The lower premium plan", correct:false},
+          {text:"The patient chooses one", correct:false}
+        ],
+        rationale:"Active employment coverage usually pays before COBRA continuation coverage from a previous job."
+      },
+      {
+        category:"Medicaid",
+        question:"A patient has commercial insurance and Medicaid. Which statement is the most accurate for COB?",
+        choices:[
+          {text:"Commercial plan first", correct:true},
+          {text:"Medicaid pays first", correct:false},
+          {text:"Both pay together", correct:false},
+          {text:"Patient chooses order", correct:false}
+        ],
+        rationale:"Medicaid is usually the payer of last resort. Other responsible payers are billed before Medicaid."
+      },
+      {
+        category:"Work Injury",
+        question:"A patient is treated for an injury that happened while lifting boxes at work. Which payer is considered first?",
+        choices:[
+          {text:"Workers compensation", correct:true},
+          {text:"Regular health plan", correct:false},
+          {text:"Spouse health plan", correct:false},
+          {text:"Medicaid assistance", correct:false}
+        ],
+        rationale:"If the visit is related to a workplace injury, workers’ compensation is usually considered before regular health insurance."
+      },
+      {
+        category:"Equal Plans",
+        question:"A patient has two active employer plans. Plan A began in 2020. Plan B began in 2024. Which plan is likely primary?",
+        choices:[
+          {text:"Plan A from 2020", correct:true},
+          {text:"Plan B from 2024", correct:false},
+          {text:"Plan with lower copay", correct:false},
+          {text:"Plan with more visits", correct:false}
+        ],
+        rationale:"When plans are otherwise equal, the plan that has covered the patient longer may become primary."
+      },
+      {
+        category:"Birthday Rule",
+        question:"A child is covered by married parents. Parent A was born in April. Parent B was born in September. Which plan is primary?",
+        choices:[
+          {text:"Parent A April plan", correct:true},
+          {text:"Parent B September plan", correct:false},
+          {text:"The older parent plan", correct:false},
+          {text:"The richer benefit plan", correct:false}
+        ],
+        rationale:"For the birthday rule, the earlier birthday in the calendar year is primary. April comes before September."
+      },
+      {
+        category:"Birthday Rule",
+        question:"A child is covered by both parents. One birthday is December 1 and the other is January 20. Which birthday wins?",
+        choices:[
+          {text:"January twentieth", correct:true},
+          {text:"December first date", correct:false},
+          {text:"The older parent age", correct:false},
+          {text:"The stronger policy", correct:false}
+        ],
+        rationale:"The birthday rule follows month and day in calendar order. January comes before December."
+      },
+      {
+        category:"Same Birthday",
+        question:"Both parents have the same birthday. One plan started in 2021 and the other in 2024. Which plan is primary?",
+        choices:[
+          {text:"Plan started in 2021", correct:true},
+          {text:"Plan started in 2024", correct:false},
+          {text:"Mother always first", correct:false},
+          {text:"Older parent always", correct:false}
+        ],
+        rationale:"If both parents have the same birthday, the plan that covered the parent longer becomes primary."
+      },
+      {
+        category:"Court Order",
+        question:"Divorced parents both cover a child. A court order names father responsible. Mother has earlier birthday. Which plan is primary?",
+        choices:[
+          {text:"Father court-order plan", correct:true},
+          {text:"Mother birthday plan", correct:false},
+          {text:"Plan with lower copay", correct:false},
+          {text:"Plan chosen by child", correct:false}
+        ],
+        rationale:"A court order assigning responsibility can override the birthday rule when the plan has knowledge of the order."
+      },
+      {
+        category:"Custody",
+        question:"Separated parents have no court order. The child lives with father. Mother has earlier birthday. Which plan is primary?",
+        choices:[
+          {text:"Father custodial plan", correct:true},
+          {text:"Mother birthday plan", correct:false},
+          {text:"The older parent plan", correct:false},
+          {text:"The lower copay plan", correct:false}
+        ],
+        rationale:"When parents are separated and there is no court order, the custodial parent’s plan comes first."
+      },
+      {
+        category:"Step-Parent",
+        question:"The child lives with mother. No court order exists. Mother lacks insurance, but step-father and father have plans. Who is primary?",
+        choices:[
+          {text:"Step-father insurance", correct:true},
+          {text:"Father insurance plan", correct:false},
+          {text:"Step-mother coverage", correct:false},
+          {text:"Child chooses payer", correct:false}
+        ],
+        rationale:"If the custodial parent has no plan, the custodial parent’s spouse comes before the non-custodial parent."
+      },
+      {
+        category:"Step-Parent",
+        question:"No court order exists. Child lives with mother. Everyone has insurance. Which order is correct?",
+        choices:[
+          {text:"Mother, step-father, father, step-mother", correct:true},
+          {text:"Father, step-mother, mother, step-father", correct:false},
+          {text:"Mother, father, step-father, step-mother", correct:false},
+          {text:"Step-father, mother, father, step-mother", correct:false}
+        ],
+        rationale:"The order is custodial parent, custodial spouse, non-custodial parent, non-custodial spouse."
+      },
+      {
+        category:"Trap Question",
+        question:"Which detail should not decide primary insurance when COB rules already determine the order?",
+        choices:[
+          {text:"The plan has nicer benefits", correct:true},
+          {text:"The patient is subscriber", correct:false},
+          {text:"The court order applies", correct:false},
+          {text:"The child lives with parent", correct:false}
+        ],
+        rationale:"Better benefits, lower copays, or personal preference do not decide COB order. Actual COB rules decide."
+      }
+    ];
+
+    let shuffledQuestions = shuffle([...questions]);
+    let current = 0;
+    let correct = 0;
+    let answered = 0;
+    let streak = 0;
+
+    function shuffle(array){
+      for(let i=array.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [array[i],array[j]]=[array[j],array[i]];
+      }
+      return array;
+    }
+
+    function jump(id){document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'});}
+
+    function updateScore(){
+      document.getElementById('scoreText').textContent = `Score: ${correct} / ${answered}`;
+      document.getElementById('streakText').textContent = `Streak: ${streak}`;
+      const pct = answered ? correct/answered : 0;
+      let level = 'Getting Started';
+      if(answered >= 5 && pct >= .8) level = 'COB Detective';
+      if(answered >= 10 && pct >= .85) level = 'Primary Payer Pro';
+      if(answered >= 14 && pct >= .9) level = 'Billing Boss';
+      document.getElementById('levelText').textContent = `Level: ${level}`;
+    }
+
+    function renderQuiz(){
+      const box = document.getElementById('quiz');
+      if(current >= shuffledQuestions.length){
+        const pct = answered ? Math.round((correct/answered)*100) : 0;
+        box.innerHTML = `
+          <div class="qTop"><span class="pill purple">Final Report</span><span class="pill green">${pct}%</span></div>
+          <h2>Game Complete</h2>
+          <p>You answered ${correct} out of ${answered} correctly.</p>
+          <div class="callout ${pct>=80?'success':'danger'}">
+            ${pct>=80 ? 'Strong work. You can identify primary payers using COB logic.' : 'Review subscriber vs. dependent, active vs. retiree/COBRA, Medicaid last, and custody order.'}
+          </div>
+          <div class="btnRow">
+            <button class="primaryBtn" onclick="restartQuiz()">Restart Game</button>
+            <button class="ghostBtn" onclick="window.print()">Print Results</button>
+          </div>
+        `;
+        return;
+      }
+      const q = shuffledQuestions[current];
+      const choices = shuffle([...q.choices]);
+      box.innerHTML = `
+        <div class="qTop">
+          <span class="pill blue">Question ${current+1} of ${shuffledQuestions.length}</span>
+          <span class="pill yellow">${q.category}</span>
+        </div>
+        <div class="questionText">${q.question}</div>
+        <div class="choices">
+          ${choices.map((c,i)=>`<button class="choice" onclick="selectChoice(this, ${c.correct})"><span class="letter">${String.fromCharCode(65+i)}</span><span>${c.text}</span></button>`).join('')}
+        </div>
+        <div id="feedback" class="feedback"></div>
+        <div class="btnRow">
+          <button id="nextBtn" class="primaryBtn hidden" onclick="nextQuestion()">Next Question</button>
+        </div>
+      `;
+    }
+
+    function selectChoice(btn,isCorrect){
+      const q = shuffledQuestions[current];
+      document.querySelectorAll('.choice').forEach(b=>b.disabled=true);
+      answered++;
+      const fb = document.getElementById('feedback');
+      if(isCorrect){
+        correct++;
+        streak++;
+        btn.classList.add('correct');
+        fb.style.borderLeftColor = 'var(--green)';
+        fb.innerHTML = `<b>Correct.</b> ${q.rationale}`;
+      }else{
+        streak = 0;
+        btn.classList.add('wrong');
+        document.querySelectorAll('.choice').forEach(b=>{
+          if(b.textContent.includes(q.choices.find(c=>c.correct).text)) b.classList.add('correct');
+        });
+        fb.style.borderLeftColor = 'var(--red)';
+        fb.innerHTML = `<b>Not quite.</b> ${q.rationale}`;
+      }
+      fb.style.display='block';
+      document.getElementById('nextBtn').classList.remove('hidden');
+      updateScore();
+    }
+
+    function nextQuestion(){current++; renderQuiz();}
+    function restartQuiz(){shuffledQuestions = shuffle([...questions]); current=0; correct=0; answered=0; streak=0; updateScore(); renderQuiz();}
+
+    const sortCorrect = ['Mother custodial plan','Step-father plan','Father non-custodial plan','Step-mother plan'];
+    let sortChosen = [];
+    function resetSort(){
+      sortChosen = [];
+      const bank = document.getElementById('bank');
+      const zone = document.getElementById('answerZone');
+      bank.innerHTML = '<h3>Payer Bank</h3>';
+      zone.innerHTML = '<h3>Your Order</h3>';
+      shuffle([...sortCorrect]).forEach(item=>{
+        const b=document.createElement('button');
+        b.className='sortItem';
+        b.textContent=item;
+        b.onclick=()=>moveSortItem(b,item);
+        bank.appendChild(b);
+      });
+      const fb=document.getElementById('sortFeedback');
+      fb.style.display='none';
+    }
+    function moveSortItem(btn,item){
+      sortChosen.push(item);
+      btn.remove();
+      const zone=document.getElementById('answerZone');
+      const itemDiv=document.createElement('div');
+      itemDiv.className='sortItem';
+      itemDiv.textContent = `${sortChosen.length}. ${item}`;
+      zone.appendChild(itemDiv);
+    }
+    function checkSort(){
+      const fb=document.getElementById('sortFeedback');
+      if(sortChosen.length !== sortCorrect.length){
+        fb.style.display='block';
+        fb.style.borderLeftColor='var(--orange)';
+        fb.innerHTML='<b>Keep going.</b> Add all four payers before checking the order.';
+        return;
+      }
+      const ok = sortChosen.every((x,i)=>x===sortCorrect[i]);
+      fb.style.display='block';
+      if(ok){
+        fb.style.borderLeftColor='var(--green)';
+        fb.innerHTML='<b>Correct.</b> With no court order, the custodial household comes first: mother, then step-father, then father, then step-mother.';
+      }else{
+        fb.style.borderLeftColor='var(--red)';
+        fb.innerHTML='<b>Review this rule.</b> The correct order is: mother, step-father, father, step-mother. Child’s household comes first.';
+      }
+    }
+
+    renderQuiz();
+    resetSort();
+    updateScore();
+  </script>
+</body>
+</html>
