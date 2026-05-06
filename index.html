@@ -417,20 +417,38 @@
       </div>
       <div class="card span12">
         <h2>Custody and Step-Parent Order</h2>
-        <div class="bigRule">Separated with no court order: child’s household comes first.</div>
+        <p><b>Custodial parent</b> means the parent the child primarily lives with or the parent who has legal/physical custody. <b>Non-custodial parent</b> means the other parent who does not have primary custody.</p>
+        <div class="bigRule">Separated with no court order: the child’s custodial household comes first.</div>
         <div class="pathway">
-          <div class="step"><div class="num">1</div><div><b>Custodial parent</b><small>The parent the child lives with.</small></div></div>
-          <div class="step"><div class="num">2</div><div><b>Custodial parent’s spouse</b><small>The step-parent in the child’s household.</small></div></div>
-          <div class="step"><div class="num">3</div><div><b>Non-custodial parent</b><small>The parent outside the child’s main household.</small></div></div>
-          <div class="step"><div class="num">4</div><div><b>Non-custodial parent’s spouse</b><small>The step-parent in the other household.</small></div></div>
+          <div class="step"><div class="num">1</div><div><b>Custodial parent</b><small>The parent the child lives with most of the time. Example: Mother if the child lives with mother.</small></div></div>
+          <div class="step"><div class="num">2</div><div><b>Custodial parent’s spouse</b><small>The step-parent in the child’s main household. Example: Mother’s husband / step-father.</small></div></div>
+          <div class="step"><div class="num">3</div><div><b>Non-custodial parent</b><small>The other biological/legal parent outside the child’s main household. Example: Father if the child does not live with father.</small></div></div>
+          <div class="step"><div class="num">4</div><div><b>Non-custodial parent’s spouse</b><small>The step-parent in the other household. Example: Father’s wife / step-mother.</small></div></div>
         </div>
+      </div>
+
+      <div class="card span12">
+        <h2>Who Brought the Child to the Clinic?</h2>
+        <p>In front-desk, billing, and coding situations, do not assume the person who brings the child is automatically the insurance subscriber or the person legally responsible for payment.</p>
+        <table>
+          <thead><tr><th>Term</th><th>Meaning</th><th>Billing Warning</th></tr></thead>
+          <tbody>
+            <tr><td>Accompanying adult</td><td>The adult who brings the child to the visit</td><td>May not be responsible for payment</td></tr>
+            <tr><td>Parent/guardian</td><td>Adult with parental or legal authority</td><td>Can usually consent, depending on policy</td></tr>
+            <tr><td>Guarantor</td><td>Person financially responsible for the bill</td><td>Often listed on the patient account</td></tr>
+            <tr><td>Subscriber</td><td>Person who owns the insurance policy</td><td>Not always the same as guarantor</td></tr>
+            <tr><td>Policyholder</td><td>Another word often used for subscriber</td><td>Verify plan details before billing</td></tr>
+          </tbody>
+        </table>
+        <div class="callout danger"><b>Important:</b> The person who brings the child to the clinic may be an accompanying adult, but the insurance subscriber and guarantor may be different people.</div>
+        <div class="callout success"><b>Billing mindset:</b> Ask: Who has legal authority? Who owns the insurance? Who is financially responsible?</div>
       </div>
     </section>
 
     <section id="practice" class="grid">
       <div class="card span12">
         <h2>Practice Game: Who Pays First?</h2>
-        <p>Answer each question. The choices are randomized each time the page loads. The correct answer is not always in the same position, and answer choices are written with similar length so students cannot game the test.</p>
+        <p>Answer each question. The choices are randomized each time the page loads. The correct answer is not always in the same position, and answer choices are written with similar length so students cannot game the test. Watch the vocabulary: subscriber, dependent, guarantor, custodial parent, and accompanying adult are not the same thing.</p>
         <div class="score">
           <span id="scoreText">Score: 0 / 0</span>
           <span id="streakText">Streak: 0</span>
@@ -441,7 +459,7 @@
 
       <div class="card span12">
         <h2>Sorting Challenge</h2>
-        <p>Click each payer in the correct order for a separated-parent case with no court order. Scenario: child lives with mother. Mother, step-father, father, and step-mother all have insurance.</p>
+        <p>Click each payer in the correct order for a separated-parent case with no court order. Scenario: the child lives with the mother, so the mother is the <b>custodial parent</b>. The father is the <b>non-custodial parent</b>. Mother, step-father, father, and step-mother all have insurance.</p>
         <div class="dragArea">
           <div class="bank" id="bank"><h3>Payer Bank</h3></div>
           <div class="dropZone" id="answerZone"><h3>Your Order</h3></div>
@@ -614,6 +632,28 @@
         rationale:"The order is custodial parent, custodial spouse, non-custodial parent, non-custodial spouse."
       },
       {
+        category:"Clinic Vocabulary",
+        question:"A grandmother brings a child to the clinic. She is not listed on the policy or account. What is the safest term?",
+        choices:[
+          {text:"Accompanying adult", correct:true},
+          {text:"Insurance subscriber", correct:false},
+          {text:"Account guarantor", correct:false},
+          {text:"Policyholder adult", correct:false}
+        ],
+        rationale:"The adult who brings the child may simply be the accompanying adult. Do not assume she is the subscriber, guarantor, or legal guardian unless the account confirms it."
+      },
+      {
+        category:"Clinic Vocabulary",
+        question:"In a billing account, what do we call the person financially responsible for the patient balance?",
+        choices:[
+          {text:"Account guarantor", correct:true},
+          {text:"Accompanying adult", correct:false},
+          {text:"Insurance dependent", correct:false},
+          {text:"Non-custodial spouse", correct:false}
+        ],
+        rationale:"The guarantor is the person financially responsible for the bill. The guarantor may be different from the subscriber or the person who brought the child."
+      },
+      {
         category:"Trap Question",
         question:"Which detail should not decide primary insurance when COB rules already determine the order?",
         choices:[
@@ -717,7 +757,7 @@
     function nextQuestion(){current++; renderQuiz();}
     function restartQuiz(){shuffledQuestions = shuffle([...questions]); current=0; correct=0; answered=0; streak=0; updateScore(); renderQuiz();}
 
-    const sortCorrect = ['Mother custodial plan','Step-father plan','Father non-custodial plan','Step-mother plan'];
+    const sortCorrect = ['Mother plan — custodial parent','Step-father plan — custodial spouse','Father plan — non-custodial parent','Step-mother plan — non-custodial spouse'];
     let sortChosen = [];
     function resetSort(){
       sortChosen = [];
@@ -756,10 +796,10 @@
       fb.style.display='block';
       if(ok){
         fb.style.borderLeftColor='var(--green)';
-        fb.innerHTML='<b>Correct.</b> With no court order, the custodial household comes first: mother, then step-father, then father, then step-mother.';
+        fb.innerHTML='<b>Correct.</b> The mother is the custodial parent because the child lives with her. With no court order, the order is: custodial parent, custodial spouse, non-custodial parent, then non-custodial spouse.';
       }else{
         fb.style.borderLeftColor='var(--red)';
-        fb.innerHTML='<b>Review this rule.</b> The correct order is: mother, step-father, father, step-mother. Child’s household comes first.';
+        fb.innerHTML='<b>Review this rule.</b> The mother is the custodial parent because the child lives with her. The father is the non-custodial parent. Correct order: mother\'s plan, step-father\'s plan, father\'s plan, then step-mother\'s plan. The custodial household comes before the non-custodial household.';
       }
     }
 
