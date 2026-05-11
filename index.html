@@ -1,811 +1,731 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Coordination of Benefits: Who Pays First?</title>
-  <style>
-    :root{
-      --ink:#182033;
-      --muted:#5e6575;
-      --bg1:#fff8f1;
-      --bg2:#f4fbff;
-      --card:#ffffff;
-      --navy:#26345f;
-      --blue:#4f8cff;
-      --teal:#21b7a8;
-      --green:#6bc46d;
-      --yellow:#ffd166;
-      --orange:#ff9f43;
-      --pink:#ff6fae;
-      --purple:#8b5cf6;
-      --red:#ff5a63;
-      --shadow:0 18px 38px rgba(38,52,95,.16);
-      --softShadow:0 10px 22px rgba(38,52,95,.12);
-      --radius:24px;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color:var(--ink);
-      background:
-        radial-gradient(circle at 10% 20%, rgba(255,209,102,.36), transparent 28%),
-        radial-gradient(circle at 90% 10%, rgba(255,111,174,.28), transparent 25%),
-        radial-gradient(circle at 70% 90%, rgba(33,183,168,.25), transparent 30%),
-        linear-gradient(135deg,var(--bg1),var(--bg2));
-      min-height:100vh;
-    }
-    header{
-      padding:34px 18px 18px;
-      text-align:center;
-      position:relative;
-      overflow:hidden;
-    }
-    .badge{
-      display:inline-flex;
-      gap:8px;
-      align-items:center;
-      padding:8px 14px;
-      background:#fff;
-      border:2px solid rgba(38,52,95,.1);
-      border-radius:999px;
-      box-shadow:var(--softShadow);
-      font-weight:800;
-      color:var(--navy);
-      margin-bottom:12px;
-    }
-    h1{
-      font-size:clamp(2rem,5vw,4.5rem);
-      line-height:1;
-      margin:8px auto 10px;
-      max-width:980px;
-      letter-spacing:-.05em;
-    }
-    .subtitle{
-      max-width:820px;
-      margin:0 auto;
-      font-size:1.1rem;
-      color:var(--muted);
-      line-height:1.55;
-      font-weight:600;
-    }
-    .wrap{max-width:1180px;margin:0 auto;padding:18px}
-    .topbar{
-      position:sticky;
-      top:0;
-      z-index:20;
-      backdrop-filter:blur(14px);
-      background:rgba(255,255,255,.72);
-      border-bottom:1px solid rgba(38,52,95,.08);
-    }
-    .nav{
-      max-width:1180px;
-      margin:0 auto;
-      display:flex;
-      gap:10px;
-      overflow:auto;
-      padding:12px 18px;
-    }
-    .nav button,.primaryBtn,.ghostBtn{
-      border:0;
-      cursor:pointer;
-      border-radius:18px;
-      padding:12px 16px;
-      font-weight:900;
-      color:white;
-      box-shadow:var(--softShadow);
-      transition:.2s transform,.2s box-shadow,.2s filter;
-      white-space:nowrap;
-    }
-    .nav button:hover,.primaryBtn:hover,.ghostBtn:hover,.choice:hover{transform:translateY(-2px);filter:saturate(1.08)}
-    .nav button:nth-child(1){background:linear-gradient(135deg,var(--blue),var(--purple))}
-    .nav button:nth-child(2){background:linear-gradient(135deg,var(--teal),var(--green))}
-    .nav button:nth-child(3){background:linear-gradient(135deg,var(--orange),var(--yellow));color:#3a2500}
-    .nav button:nth-child(4){background:linear-gradient(135deg,var(--pink),var(--purple))}
-    .nav button:nth-child(5){background:linear-gradient(135deg,var(--navy),#5363a8)}
-    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px}
-    .card{
-      background:rgba(255,255,255,.92);
-      border:1px solid rgba(38,52,95,.08);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:24px;
-      position:relative;
-      overflow:hidden;
-    }
-    .card::before{
-      content:"";
-      position:absolute;
-      inset:auto -40px -70px auto;
-      width:180px;height:180px;
-      border-radius:50%;
-      background:rgba(79,140,255,.12);
-      pointer-events:none;
-    }
-    .span6{grid-column:span 6}.span4{grid-column:span 4}.span8{grid-column:span 8}.span12{grid-column:span 12}
-    @media(max-width:850px){.span6,.span4,.span8{grid-column:span 12}.nav{padding-inline:10px}.card{padding:18px}}
-    h2{font-size:clamp(1.55rem,3vw,2.35rem);margin:0 0 12px;letter-spacing:-.03em}
-    h3{font-size:1.25rem;margin:0 0 10px}
-    p{line-height:1.6;color:var(--muted);font-weight:600}
-    .bigRule{
-      padding:18px;
-      border-radius:22px;
-      background:linear-gradient(135deg,#26345f,#4f8cff);
-      color:white;
-      font-size:1.3rem;
-      font-weight:950;
-      line-height:1.35;
-      box-shadow:var(--softShadow);
-    }
-    .pillrow{display:flex;flex-wrap:wrap;gap:10px;margin:15px 0}
-    .pill{
-      padding:10px 12px;
-      border-radius:999px;
-      font-weight:950;
-      box-shadow:0 8px 16px rgba(0,0,0,.08);
-      border:2px solid rgba(255,255,255,.8);
-    }
-    .pill.blue{background:#d8e6ff;color:#14326b}.pill.green{background:#ddf7df;color:#145d22}.pill.pink{background:#ffe0ef;color:#7b1745}.pill.yellow{background:#fff1bd;color:#614300}.pill.purple{background:#ece3ff;color:#442090}
-    .pathway{display:grid;gap:12px;margin-top:14px}
-    .step{
-      display:grid;
-      grid-template-columns:52px 1fr;
-      gap:14px;
-      align-items:center;
-      padding:14px;
-      border-radius:20px;
-      background:#fff;
-      border:1px solid rgba(38,52,95,.08);
-      box-shadow:0 8px 18px rgba(38,52,95,.08);
-    }
-    .num{
-      width:52px;height:52px;border-radius:17px;
-      display:grid;place-items:center;
-      font-size:1.2rem;font-weight:1000;color:white;
-      background:linear-gradient(135deg,var(--pink),var(--orange));
-      box-shadow:0 8px 16px rgba(255,111,174,.28);
-    }
-    .step b{font-size:1.05rem}.step small{display:block;color:var(--muted);font-weight:700;margin-top:3px}
-    table{width:100%;border-collapse:separate;border-spacing:0 10px;margin-top:12px}
-    th{text-align:left;color:#51607a;font-size:.86rem;text-transform:uppercase;letter-spacing:.08em}
-    td{background:#fff;padding:14px;border-top:1px solid rgba(38,52,95,.08);border-bottom:1px solid rgba(38,52,95,.08);font-weight:800;color:#29344f}
-    td:first-child{border-left:1px solid rgba(38,52,95,.08);border-radius:16px 0 0 16px}
-    td:last-child{border-right:1px solid rgba(38,52,95,.08);border-radius:0 16px 16px 0}
-    .gameBox{
-      background:linear-gradient(135deg,rgba(255,209,102,.34),rgba(255,111,174,.18));
-      border:2px dashed rgba(38,52,95,.18);
-      padding:18px;
-      border-radius:24px;
-    }
-    .questionCard{
-      margin-top:16px;
-      padding:20px;
-      border-radius:24px;
-      background:rgba(255,255,255,.95);
-      box-shadow:var(--shadow);
-      border:1px solid rgba(38,52,95,.08);
-    }
-    .qTop{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
-    .score{
-      display:flex;gap:10px;flex-wrap:wrap;
-      font-weight:950;
-    }
-    .score span{padding:9px 12px;border-radius:999px;background:#fff;box-shadow:var(--softShadow)}
-    .questionText{font-size:1.15rem;color:#202a43;font-weight:850;line-height:1.5;margin:10px 0 16px}
-    .choices{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-    @media(max-width:720px){.choices{grid-template-columns:1fr}}
-    .choice{
-      min-height:78px;
-      display:flex;
-      align-items:center;
-      justify-content:flex-start;
-      gap:12px;
-      text-align:left;
-      border:0;
-      cursor:pointer;
-      padding:15px;
-      border-radius:20px;
-      font-weight:900;
-      color:#172036;
-      background:linear-gradient(135deg,#eef5ff,#ffffff);
-      border:2px solid rgba(38,52,95,.08);
-      box-shadow:0 8px 17px rgba(38,52,95,.08);
-      line-height:1.35;
-    }
-    .choice .letter{
-      flex:0 0 38px;
-      width:38px;height:38px;border-radius:13px;
-      display:grid;place-items:center;
-      color:white;background:var(--navy);font-weight:1000;
-    }
-    .choice.correct{background:linear-gradient(135deg,#dff8e3,#ffffff);border-color:#4caf50}
-    .choice.wrong{background:linear-gradient(135deg,#ffe0e4,#ffffff);border-color:#ff5a63}
-    .choice:disabled{cursor:not-allowed;opacity:.95;transform:none}
-    .feedback{
-      display:none;
-      margin-top:14px;
-      padding:16px;
-      border-radius:20px;
-      background:#f6f8ff;
-      border-left:8px solid var(--blue);
-      color:#26345f;
-      font-weight:750;
-      line-height:1.55;
-    }
-    .btnRow{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
-    .primaryBtn{background:linear-gradient(135deg,var(--blue),var(--purple));font-size:1rem}
-    .ghostBtn{background:linear-gradient(135deg,var(--teal),var(--green));font-size:1rem;color:#062b27}
-    .miniCards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
-    @media(max-width:950px){.miniCards{grid-template-columns:repeat(2,1fr)}}
-    @media(max-width:560px){.miniCards{grid-template-columns:1fr}}
-    .mini{
-      padding:16px;
-      border-radius:20px;
-      color:#172036;
-      min-height:142px;
-      box-shadow:var(--softShadow);
-      border:2px solid rgba(255,255,255,.7);
-    }
-    .mini:nth-child(1){background:linear-gradient(135deg,#d8e6ff,#fff)}
-    .mini:nth-child(2){background:linear-gradient(135deg,#ddf7df,#fff)}
-    .mini:nth-child(3){background:linear-gradient(135deg,#fff1bd,#fff)}
-    .mini:nth-child(4){background:linear-gradient(135deg,#ffe0ef,#fff)}
-    .mini b{display:block;font-size:1.05rem;margin-bottom:6px}.mini span{color:#5e6575;font-weight:700;line-height:1.45}
-    .flipGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}
-    @media(max-width:900px){.flipGrid{grid-template-columns:1fr}}
-    .flip{perspective:1000px;min-height:190px;cursor:pointer}
-    .flipInner{position:relative;width:100%;height:100%;min-height:190px;transition:transform .6s;transform-style:preserve-3d}
-    .flip.flipped .flipInner{transform:rotateY(180deg)}
-    .front,.back{
-      position:absolute;inset:0;
-      backface-visibility:hidden;
-      border-radius:24px;
-      padding:20px;
-      box-shadow:var(--shadow);
-      border:2px solid rgba(255,255,255,.7);
-      display:flex;flex-direction:column;justify-content:center;
-    }
-    .front{background:linear-gradient(135deg,#26345f,#8b5cf6);color:white}.front p,.front h3{color:white}
-    .back{background:linear-gradient(135deg,#fff,#fff1bd);transform:rotateY(180deg)}
-    .back p{color:#3d4352}
-    .callout{
-      margin-top:14px;
-      padding:16px;
-      border-radius:20px;
-      background:linear-gradient(135deg,#fff,#f1f7ff);
-      border:1px solid rgba(38,52,95,.08);
-      box-shadow:var(--softShadow);
-      font-weight:850;
-      line-height:1.55;
-    }
-    .danger{border-left:8px solid var(--red)}.success{border-left:8px solid var(--green)}.purpleLine{border-left:8px solid var(--purple)}
-    .dragArea{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
-    @media(max-width:800px){.dragArea{grid-template-columns:1fr}}
-    .dropZone,.bank{
-      min-height:210px;
-      border-radius:24px;
-      padding:16px;
-      background:rgba(255,255,255,.75);
-      border:2px dashed rgba(38,52,95,.18);
-    }
-    .sortItem{
-      display:block;
-      width:100%;
-      border:0;
-      cursor:pointer;
-      margin:8px 0;
-      padding:12px;
-      border-radius:17px;
-      background:linear-gradient(135deg,#ffe0ef,#fff1bd);
-      font-weight:950;
-      box-shadow:0 8px 15px rgba(38,52,95,.08);
-      text-align:left;
-    }
-    .footerNote{text-align:center;color:#687083;font-weight:700;padding:25px}
-    .hidden{display:none!important}
-    @media print{
-      .topbar,.btnRow,.nav{display:none!important}
-      body{background:white}.card,.questionCard{box-shadow:none;border:1px solid #ccc;break-inside:avoid}
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>The Little Bridge in the Forest 🌿</title>
+<style>
+:root {
+  --forest-dark: #1a3a1a;
+  --forest-mid: #2d5a2d;
+  --forest-light: #4a8a4a;
+  --sky-top: #87CEEB;
+  --sky-bottom: #c8e6f5;
+  --sunset-orange: #ff7e47;
+  --sunset-gold: #ffd700;
+  --water-blue: #4fc3f7;
+  --water-dark: #0288d1;
+  --bridge-brown: #8B6914;
+  --bridge-light: #c49a3c;
+  --pippa-pink: #ffb6c1;
+  --warm-white: #fff8f0;
+  --warm-cream: #fef3e2;
+  --golden: #f0c040;
+  --leaf-green: #27ae60;
+  --soft-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  --font-story: 'Nunito', 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+  --font-title: 'Bubblegum Sans', 'Comic Sans MS', cursive;
+  --font-dyslexia: 'OpenDyslexic', 'Comic Sans MS', sans-serif;
+  --radius-lg: 30px;
+}
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Bubblegum+Sans&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { overflow: hidden; height: 100%; }
+body {
+  font-family: var(--font-story); background: var(--forest-dark); color: #3a2a1a;
+  overflow: hidden; height: 100%;
+  -webkit-user-select: none; user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+body.dyslexia-mode, body.dyslexia-mode * {
+  font-family: var(--font-dyslexia) !important; letter-spacing: 0.05em;
+}
+body.dyslexia-mode * { line-height: 1.8 !important; }
+body.large-text .story-text { font-size: 1.55rem !important; }
+
+/* === LOADING === */
+#loading-screen {
+  position: fixed; inset: 0; z-index: 10000;
+  background: linear-gradient(135deg, #1a3a1a, #2d5a2d, #1a4a2a);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transition: opacity 0.8s;
+}
+#loading-screen.hidden { opacity: 0; pointer-events: none; }
+.loading-title { font-family: var(--font-title); font-size: 2.5rem; color: var(--golden); text-shadow: 0 0 30px rgba(255,215,0,0.5); margin-bottom: 20px; text-align: center; padding: 0 20px; }
+.loading-bar-container { width: 250px; height: 12px; background: rgba(255,255,255,0.15); border-radius: 10px; overflow: hidden; }
+.loading-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--golden), var(--sunset-orange)); border-radius: 10px; transition: width 0.3s; }
+.loading-text { color: rgba(255,255,255,0.5); margin-top: 12px; font-size: 0.9rem; }
+
+/* === TITLE SCREEN === */
+#title-screen {
+  position: fixed; inset: 0; z-index: 9000;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;
+}
+.title-bg { position: absolute; inset: 0; background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 40%, var(--forest-light) 70%, var(--forest-dark) 100%); }
+.title-bg-trees { position: absolute; bottom: 0; left: 0; right: 0; height: 45%; background: linear-gradient(180deg, transparent 0%, var(--forest-dark) 60%); }
+.title-content { position: relative; z-index: 2; text-align: center; padding: 20px; }
+.book-icon { font-size: 5rem; margin-bottom: 10px; animation: float 3s ease-in-out infinite; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3)); }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+.main-title { font-family: var(--font-title); font-size: clamp(2rem, 6vw, 3.5rem); color: var(--golden); text-shadow: 0 3px 10px rgba(0,0,0,0.3), 0 0 40px rgba(255,215,0,0.3); margin-bottom: 8px; line-height: 1.2; }
+.main-subtitle { font-size: clamp(0.9rem, 2.5vw, 1.2rem); color: rgba(255,255,255,0.85); margin-bottom: 40px; font-weight: 600; }
+.menu-buttons { display: flex; flex-direction: column; gap: 16px; align-items: center; }
+.menu-btn { font-family: var(--font-story); font-size: 1.2rem; font-weight: 700; padding: 18px 50px; border: none; border-radius: 50px; cursor: pointer; transition: all 0.3s; min-width: 280px; position: relative; overflow: hidden; }
+.menu-btn::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 50%); border-radius: 50px; }
+.menu-btn:hover { transform: scale(1.05); }
+.menu-btn:active { transform: scale(0.97); }
+.btn-read-to-me { background: linear-gradient(135deg, #ff9a56, #ff6b35); color: white; box-shadow: 0 6px 25px rgba(255,107,53,0.4); }
+.btn-read-myself { background: linear-gradient(135deg, #56c8ff, #3498db); color: white; box-shadow: 0 6px 25px rgba(52,152,219,0.4); }
+.btn-settings-menu { background: rgba(255,255,255,0.15); color: white; border: 2px solid rgba(255,255,255,0.3); font-size: 1rem; padding: 14px 40px; }
+.title-characters { position: absolute; bottom: 8%; left: 50%; transform: translateX(-50%); font-size: 4rem; display: flex; gap: 15px; z-index: 2; }
+.title-characters span { animation: float 3s ease-in-out infinite; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3)); }
+.title-characters span:nth-child(2) { animation-delay: 0.5s; }
+.title-characters span:nth-child(3) { animation-delay: 1s; }
+.title-characters span:nth-child(4) { animation-delay: 1.5s; }
+.title-leaf { position: absolute; font-size: 1.5rem; opacity: 0.6; z-index: 1; animation: leafFall linear infinite; }
+@keyframes leafFall { 0% { transform: translateY(-100px) rotate(0deg); opacity: 0; } 10% { opacity: 0.6; } 90% { opacity: 0.6; } 100% { transform: translateY(calc(100vh + 50px)) rotate(720deg); opacity: 0; } }
+
+/* === SETTINGS === */
+#settings-panel { position: fixed; inset: 0; z-index: 9500; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+#settings-panel.show { display: flex; }
+.settings-card { background: var(--warm-cream); border-radius: var(--radius-lg); padding: 30px; max-width: 420px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: var(--soft-shadow); }
+.settings-title { font-family: var(--font-title); font-size: 1.8rem; color: var(--forest-dark); text-align: center; margin-bottom: 20px; }
+.setting-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid rgba(0,0,0,0.08); gap: 12px; }
+.setting-label { font-weight: 700; font-size: 0.95rem; color: #4a3a2a; }
+.toggle-switch { width: 52px; height: 28px; background: #ccc; border-radius: 14px; position: relative; cursor: pointer; transition: background 0.3s; border: none; flex-shrink: 0; }
+.toggle-switch.on { background: var(--leaf-green); }
+.toggle-switch::after { content: ''; position: absolute; width: 22px; height: 22px; background: white; border-radius: 50%; top: 3px; left: 3px; transition: transform 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+.toggle-switch.on::after { transform: translateX(24px); }
+.settings-close { display: block; margin: 20px auto 0; padding: 14px 50px; background: var(--forest-mid); color: white; border: none; border-radius: 50px; font-size: 1.1rem; font-weight: 700; cursor: pointer; font-family: var(--font-story); }
+.api-key-section { margin-top: 12px; padding: 14px; background: rgba(255,255,255,0.6); border-radius: 16px; border: 2px dashed rgba(0,0,0,0.12); }
+.api-key-section label { display: block; font-weight: 700; font-size: 0.95rem; color: #4a3a2a; margin-bottom: 6px; }
+.api-key-section .api-hint { font-size: 0.78rem; color: #888; margin-bottom: 8px; line-height: 1.4; }
+.api-key-input { width: 100%; padding: 10px 14px; border: 2px solid #ddd; border-radius: 12px; font-family: monospace; font-size: 0.85rem; outline: none; }
+.api-key-input:focus { border-color: var(--leaf-green); }
+.api-status { font-size: 0.78rem; margin-top: 6px; font-weight: 600; }
+.api-status.connected { color: var(--leaf-green); }
+.api-status.disconnected { color: #999; }
+
+/* === STORY CONTAINER === */
+#story-container { position: fixed; inset: 0; display: none; overflow: hidden; }
+#story-container.active { display: block; }
+
+/* === FOREST BG === */
+.forest-bg { position: absolute; inset: 0; overflow: hidden; }
+.sky-layer { position: absolute; inset: 0; }
+.sky-day { background: linear-gradient(180deg, #6ab7e8 0%, #a8d8ea 30%, #c8e6c0 65%, #8aba6a 100%); }
+.sky-sunset { background: linear-gradient(180deg, #1a0533 0%, #6b2fa0 20%, #e8573a 50%, #ffa751 70%, #ffd700 100%); }
+.cloud { position: absolute; background: rgba(255,255,255,0.85); border-radius: 50px; animation: cloudDrift linear infinite; }
+.cloud::before, .cloud::after { content: ''; position: absolute; background: inherit; border-radius: 50%; }
+.cloud-1 { width: 120px; height: 40px; top: 8%; animation-duration: 45s; }
+.cloud-1::before { width: 50px; height: 50px; top: -25px; left: 20px; }
+.cloud-1::after { width: 70px; height: 45px; top: -20px; left: 50px; }
+.cloud-2 { width: 90px; height: 30px; top: 15%; animation-duration: 60s; animation-delay: -20s; }
+.cloud-2::before { width: 40px; height: 40px; top: -20px; left: 15px; }
+.cloud-2::after { width: 55px; height: 35px; top: -15px; left: 35px; }
+.cloud-3 { width: 100px; height: 35px; top: 5%; animation-duration: 55s; animation-delay: -35s; }
+.cloud-3::before { width: 45px; height: 45px; top: -22px; left: 18px; }
+.cloud-3::after { width: 60px; height: 40px; top: -18px; left: 42px; }
+@keyframes cloudDrift { 0% { transform: translateX(-200px); } 100% { transform: translateX(calc(100vw + 200px)); } }
+
+.hills-back { position: absolute; bottom: 52%; left: 0; right: 0; height: 28%; background: #4a8a4a; border-radius: 60% 80% 0 0 / 100% 100% 0 0; opacity: 0.5; }
+.hills-front { position: absolute; bottom: 46%; left: -5%; right: -5%; height: 22%; background: #3a7a3a; border-radius: 50% 70% 0 0 / 100% 100% 0 0; }
+
+.tree-layer { position: absolute; bottom: 35%; left: 0; right: 0; height: 40%; }
+.css-tree { position: absolute; bottom: 0; }
+.css-tree .trunk-el { width: 14px; background: linear-gradient(90deg, #5a3a1a, #7a5a3a, #5a3a1a); border-radius: 3px; margin: 0 auto; }
+.css-tree .canopy-el { border-radius: 50%; }
+
+.ground-layer { position: absolute; bottom: 0; left: 0; right: 0; height: 42%; background: linear-gradient(180deg, #5a9a3a 0%, #3a7a2a 30%, #2a5a1a 65%, #1a3a1a 100%); }
+.grass-blade { position: absolute; bottom: 0; width: 4px; background: #5aaa4a; border-radius: 2px 2px 0 0; transform-origin: bottom center; animation: grassSway 3s ease-in-out infinite; }
+@keyframes grassSway { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+
+/* === RIVER === */
+.river { position: absolute; bottom: 38%; left: 0; right: 0; height: 5%; background: linear-gradient(180deg, rgba(100,200,255,0.55), rgba(40,160,220,0.7)); overflow: hidden; z-index: 3; }
+.river-shimmer { position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,255,255,0.2) 40px, rgba(255,255,255,0.2) 42px); animation: riverFlow 3s linear infinite; }
+@keyframes riverFlow { 0% { transform: translateX(0); } 100% { transform: translateX(42px); } }
+.river::before { content: ''; position: absolute; top: -4px; left: 0; right: 0; height: 6px; background: linear-gradient(180deg, transparent, rgba(80,140,60,0.6)); }
+.river::after { content: ''; position: absolute; bottom: -4px; left: 0; right: 0; height: 6px; background: linear-gradient(0deg, transparent, rgba(80,140,60,0.6)); }
+.river-sparkle { position: absolute; width: 3px; height: 3px; background: white; border-radius: 50%; animation: sparkle 2s ease-in-out infinite; }
+@keyframes sparkle { 0%, 100% { opacity: 0; } 50% { opacity: 0.8; } }
+
+/* === BRIDGE — large and prominent === */
+.bridge-container {
+  position: absolute; bottom: 35%; left: 50%; transform: translateX(-50%);
+  width: min(80vw, 520px); height: min(22vh, 165px); z-index: 5;
+  animation: bridgeSway 8s ease-in-out infinite;
+}
+@keyframes bridgeSway { 0%, 100% { transform: translateX(-50%) rotate(0deg); } 50% { transform: translateX(-50%) rotate(0.25deg); } }
+.bridge-svg { width: 100%; height: 100%; filter: drop-shadow(0 8px 18px rgba(0,0,0,0.4)); }
+
+/* === LEAVES & FIREFLIES === */
+.floating-leaf { position: absolute; z-index: 6; pointer-events: none; animation: leafFloat linear infinite; }
+@keyframes leafFloat { 0% { transform: translate(0,0) rotate(0deg); opacity: 0; } 5% { opacity: 0.8; } 95% { opacity: 0.8; } 100% { transform: translate(var(--leaf-dx,100px), var(--leaf-dy,300px)) rotate(var(--leaf-rot,360deg)); opacity: 0; } }
+.firefly { position: absolute; width: 6px; height: 6px; background: var(--golden); border-radius: 50%; box-shadow: 0 0 12px var(--golden), 0 0 25px rgba(255,215,0,0.5); animation: fireflyGlow 4s ease-in-out infinite; z-index: 6; pointer-events: none; }
+@keyframes fireflyGlow { 0%, 100% { opacity: 0; transform: translate(0,0); } 20% { opacity: 1; } 50% { opacity: 0.6; transform: translate(20px,-30px); } 80% { opacity: 1; transform: translate(-10px,-50px); } }
+
+/* === CHARACTERS === */
+.character { position: absolute; font-size: 4rem; z-index: 8; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.35)); transition: all 1s ease; }
+.char-bounce { animation: charBounce 2s ease-in-out infinite; }
+@keyframes charBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+.char-talk { animation: charTalk 0.4s ease-in-out infinite alternate; }
+@keyframes charTalk { 0% { transform: scale(1); } 100% { transform: scale(1.06); } }
+
+/* ================================================================
+   TEXT PANEL — sits ABOVE the nav bar, no overlap
+   ================================================================ */
+.text-panel {
+  position: absolute;
+  bottom: 66px; /* well above nav bar */
+  left: 0; right: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(12,10,6,0.7) 22%, rgba(12,10,6,0.92) 100%);
+  padding: 28px 22px 16px;
+  z-index: 20;
+  pointer-events: none;
+}
+.story-text {
+  font-size: 1.2rem; line-height: 1.75; color: var(--warm-white);
+  text-align: center; max-width: 660px; margin: 0 auto;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.6); font-weight: 600;
+}
+.story-text .highlight-word { transition: color 0.15s, background 0.15s; border-radius: 4px; padding: 0 2px; }
+.story-text .highlight-word.active { color: var(--golden); background: rgba(255,215,0,0.18); }
+.dialogue { font-style: italic; color: #ffeaa7; }
+.speaker-name { font-weight: 900; font-style: normal; display: inline-block; margin-right: 4px; }
+.speaker-pippa { color: var(--pippa-pink); }
+.speaker-rory { color: #7fdbff; }
+.speaker-bram { color: #c19a6b; }
+.speaker-cass { color: #b0b0b0; }
+
+/* === SCENE DOTS === */
+.scene-indicator { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; z-index: 25; flex-wrap: wrap; justify-content: center; max-width: 85%; }
+.scene-dot { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,0.3); transition: all 0.4s; border: 2px solid rgba(255,255,255,0.15); }
+.scene-dot.active { background: var(--golden); width: 24px; border-radius: 5px; border-color: var(--golden); box-shadow: 0 0 10px rgba(255,215,0,0.5); }
+.scene-dot.completed { background: rgba(255,215,0,0.5); border-color: rgba(255,215,0,0.4); }
+
+/* ================================================================
+   NAV CONTROLS — fixed bar at absolute bottom
+   ================================================================ */
+.nav-controls {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  display: flex; justify-content: center; gap: 14px;
+  z-index: 30; padding: 14px 20px;
+  background: rgba(8,6,4,0.95);
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.nav-btn {
+  font-family: var(--font-story); font-size: 1rem; font-weight: 700;
+  padding: 12px 30px; border: none; border-radius: 50px;
+  cursor: pointer; transition: all 0.25s; display: flex; align-items: center; gap: 8px;
+}
+.nav-btn:hover { transform: scale(1.05); }
+.nav-btn:active { transform: scale(0.95); }
+.btn-back { background: rgba(255,255,255,0.15); color: white; }
+.btn-next { background: linear-gradient(135deg, var(--golden), var(--sunset-orange)); color: white; box-shadow: 0 4px 15px rgba(255,160,0,0.3); }
+
+/* === TOP CONTROLS === */
+.top-controls { position: absolute; top: 14px; right: 14px; display: flex; gap: 8px; z-index: 30; }
+.ctrl-btn { width: 42px; height: 42px; border-radius: 50%; background: rgba(0,0,0,0.35); color: white; border: 2px solid rgba(255,255,255,0.15); font-size: 1.15rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; backdrop-filter: blur(5px); }
+.ctrl-btn:hover { background: rgba(0,0,0,0.5); transform: scale(1.1); }
+.narration-controls { position: absolute; top: 14px; left: 14px; display: flex; gap: 8px; z-index: 30; }
+
+/* === SCENES === */
+.scene { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity 1.2s ease; }
+.scene.active { opacity: 1; pointer-events: auto; }
+
+/* === QUIZ === */
+#quiz-section { position: fixed; inset: 0; z-index: 8000; display: none; overflow-y: auto; background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); }
+#quiz-section.active { display: block; }
+.quiz-container { max-width: 600px; margin: 0 auto; padding: 30px 20px; min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.quiz-card { background: rgba(255,255,255,0.95); border-radius: var(--radius-lg); padding: 30px 25px; width: 100%; box-shadow: var(--soft-shadow); text-align: center; animation: fadeInUp 0.6s ease; }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+.quiz-question-number { font-family: var(--font-title); font-size: 1rem; color: #764ba2; margin-bottom: 8px; }
+.quiz-question { font-size: 1.25rem; font-weight: 700; color: #2d1b4e; margin-bottom: 22px; line-height: 1.5; }
+.quiz-emoji { font-size: 3rem; margin-bottom: 12px; }
+.quiz-options { display: flex; flex-direction: column; gap: 11px; }
+.quiz-option { font-family: var(--font-story); font-size: 1.05rem; font-weight: 700; padding: 15px 22px; border: 3px solid #e0d4f5; border-radius: 16px; background: white; cursor: pointer; transition: all 0.3s; color: #4a3a6a; text-align: left; }
+.quiz-option:hover { border-color: #764ba2; background: #f5f0ff; transform: scale(1.02); }
+.quiz-option.correct { border-color: var(--leaf-green); background: #e8fce8; color: var(--forest-dark); animation: correctPulse 0.5s ease; }
+@keyframes correctPulse { 50% { transform: scale(1.05); } }
+.quiz-option.also-ok { border-color: #56c8ff; background: #e8f6ff; color: #1a5a8a; }
+.quiz-feedback { margin-top: 18px; padding: 14px; border-radius: 16px; font-size: 1rem; font-weight: 600; animation: fadeInUp 0.4s ease; line-height: 1.5; }
+.quiz-feedback.positive { background: #e8fce8; color: #1a5a1a; }
+.quiz-next-btn { font-family: var(--font-story); font-size: 1.05rem; font-weight: 700; padding: 13px 38px; background: linear-gradient(135deg, #764ba2, #f093fb); color: white; border: none; border-radius: 50px; cursor: pointer; margin-top: 18px; }
+.reward-screen { text-align: center; padding: 40px 20px; }
+.reward-stars { font-size: 3rem; margin-bottom: 18px; animation: float 2s ease-in-out infinite; }
+.reward-title { font-family: var(--font-title); font-size: 2rem; color: var(--golden); text-shadow: 0 0 20px rgba(255,215,0,0.5); margin-bottom: 14px; }
+.reward-message { font-size: 1.15rem; color: rgba(255,255,255,0.9); line-height: 1.6; margin-bottom: 25px; }
+.reward-btn { font-family: var(--font-story); font-size: 1.1rem; font-weight: 700; padding: 16px 50px; background: linear-gradient(135deg, var(--golden), var(--sunset-orange)); color: white; border: none; border-radius: 50px; cursor: pointer; }
+
+/* === MORAL === */
+.moral-overlay { position: fixed; inset: 0; z-index: 7500; display: none; align-items: center; justify-content: center; overflow: hidden; }
+.moral-overlay.active { display: flex; }
+.moral-bg { position: absolute; inset: 0; background: linear-gradient(180deg, #1a0533 0%, #3a1560 20%, #e8573a 55%, #ffa751 75%, #ffd700 100%); }
+.moral-stars { position: absolute; inset: 0; }
+.moral-star { position: absolute; font-size: 1.2rem; animation: starTwinkle 3s ease-in-out infinite; }
+@keyframes starTwinkle { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
+.moral-card { position: relative; z-index: 2; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border-radius: var(--radius-lg); padding: 36px 30px; max-width: 500px; width: 90%; text-align: center; border: 2px solid rgba(255,255,255,0.2); }
+.moral-heart { font-size: 3rem; margin-bottom: 14px; animation: heartbeat 1.5s ease-in-out infinite; }
+@keyframes heartbeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+.moral-text { font-family: var(--font-title); font-size: clamp(1.2rem, 4vw, 1.7rem); color: white; line-height: 1.5; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+.moral-continue-btn { font-family: var(--font-story); margin-top: 25px; padding: 14px 42px; background: linear-gradient(135deg, var(--golden), var(--sunset-orange)); color: white; border: none; border-radius: 50px; font-size: 1.05rem; font-weight: 700; cursor: pointer; }
+
+/* === AUDIO LOADING === */
+.audio-loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); background: rgba(0,0,0,0.75); color: white; padding: 18px 28px; border-radius: 18px; font-weight: 700; z-index: 100; display: none; backdrop-filter: blur(5px); font-size: 0.95rem; }
+.audio-loading.show { display: block; }
+.audio-loading .spinner { display: inline-block; width: 16px; height: 16px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 10px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* === RESPONSIVE === */
+@media (max-width: 600px) {
+  .story-text { font-size: 1rem; }
+  .text-panel { padding: 20px 12px 12px; bottom: 58px; }
+  .nav-controls { padding: 10px 12px; }
+  .nav-btn { padding: 10px 20px; font-size: 0.88rem; }
+  .menu-btn { min-width: 240px; padding: 14px 35px; font-size: 1rem; }
+  .scene-dot { width: 7px; height: 7px; }
+  .scene-dot.active { width: 18px; }
+  .character { font-size: 2.5rem; }
+  .bridge-container { width: 88vw; }
+}
+</style>
 </head>
 <body>
-  <header>
-    <div class="badge">Medical Billing & Coding Game</div>
-    <h1>Coordination of Benefits: Who Pays First?</h1>
-    <p class="subtitle">Learn how to decide primary, secondary, and tertiary insurance with colorful rules, case examples, mini-games, and concept-checking questions.</p>
-  </header>
 
-  <div class="topbar">
-    <nav class="nav">
-      <button onclick="jump('cob')">COB Basics</button>
-      <button onclick="jump('rules')">Payment Rules</button>
-      <button onclick="jump('birthday')">Birthday Rule</button>
-      <button onclick="jump('practice')">Practice Game</button>
-      <button onclick="window.print()">Print / Save PDF</button>
-    </nav>
+<!-- LOADING -->
+<div id="loading-screen">
+  <div class="loading-title">🌿 Loading your story...</div>
+  <div style="font-size:4rem;margin-bottom:18px;animation:float 2s ease-in-out infinite;">📖</div>
+  <div class="loading-bar-container"><div class="loading-bar" id="loading-bar"></div></div>
+  <div class="loading-text">Preparing the forest...</div>
+</div>
+
+<!-- TITLE -->
+<div id="title-screen" style="display:none;">
+  <div class="title-bg"></div>
+  <div class="title-bg-trees"></div>
+  <div class="title-leaf" style="left:10%;font-size:1.8rem;animation-duration:12s;">🍃</div>
+  <div class="title-leaf" style="left:30%;font-size:1.2rem;animation-duration:15s;animation-delay:-3s;">🍂</div>
+  <div class="title-leaf" style="left:60%;font-size:1.5rem;animation-duration:18s;animation-delay:-7s;">🍃</div>
+  <div class="title-leaf" style="left:80%;font-size:1rem;animation-duration:14s;animation-delay:-5s;">🍂</div>
+  <div class="title-content">
+    <div class="book-icon">📖</div>
+    <h1 class="main-title">The Little Bridge<br>in the Forest</h1>
+    <p class="main-subtitle">A story about kindness, courage, and being brave</p>
+    <div class="menu-buttons">
+      <button class="menu-btn btn-read-to-me" onclick="startStory('readToMe')">🔊 Read To Me</button>
+      <button class="menu-btn btn-read-myself" onclick="startStory('readMyself')">📖 Read By Myself</button>
+      <button class="menu-btn btn-settings-menu" onclick="toggleSettings()">⚙️ Settings</button>
+    </div>
   </div>
+  <div class="title-characters"><span>🐷</span><span>🐰</span><span>🐻</span><span>🐦‍⬛</span></div>
+</div>
 
-  <main class="wrap">
-    <section id="cob" class="grid">
-      <div class="card span8">
-        <h2>First: What is Coordination of Benefits?</h2>
-        <p>Coordination of Benefits, or COB, is the system used when a patient has more than one insurance plan. The biller must decide which plan pays first, second, and sometimes third.</p>
-        <div class="bigRule">COB answers one question: Which insurance gets the first bill?</div>
-        <div class="pillrow">
-          <span class="pill blue">Primary = pays first</span>
-          <span class="pill green">Secondary = pays after</span>
-          <span class="pill yellow">Tertiary = pays third</span>
-          <span class="pill pink">Medicaid = usually last</span>
-        </div>
-      </div>
-      <div class="card span4">
-        <h2>Do Not Guess</h2>
-        <p>Students often guess by choosing the plan with the best benefits or lowest copay. That is not the rule.</p>
-        <div class="callout danger">The plan with the lowest copay is not automatically primary.</div>
-        <div class="callout success">Use the COB rules in order.</div>
-      </div>
+<!-- SETTINGS -->
+<div id="settings-panel">
+  <div class="settings-card">
+    <h2 class="settings-title">⚙️ Settings</h2>
+    <div class="setting-row"><span class="setting-label">🔤 Dyslexia-Friendly Font</span><button class="toggle-switch" id="toggle-dyslexia" onclick="toggleDyslexia()"></button></div>
+    <div class="setting-row"><span class="setting-label">🔍 Larger Text</span><button class="toggle-switch" id="toggle-large" onclick="toggleLargeText()"></button></div>
+    <div class="setting-row"><span class="setting-label">🌙 Bedtime Music</span><button class="toggle-switch" id="toggle-music" onclick="toggleBedtimeMusic()"></button></div>
+    <div class="setting-row"><span class="setting-label">▶️ Autoplay Story</span><button class="toggle-switch" id="toggle-autoplay" onclick="toggleAutoplay()"></button></div>
+    <div class="setting-row"><span class="setting-label">🌿 Forest Sounds</span><button class="toggle-switch on" id="toggle-ambient" onclick="toggleAmbient()"></button></div>
+    <div class="api-key-section">
+      <label>🎙️ AI Voice Narration (OpenAI)</label>
+      <div class="api-hint">Paste your OpenAI API key for realistic AI character voices (alloy, nova, onyx, shimmer, echo, fable). Without a key, browser voices are used.</div>
+      <input class="api-key-input" id="openai-key" type="password" placeholder="sk-..." oninput="checkApiKey()">
+      <div class="api-status disconnected" id="api-status">⚪ Using browser voices</div>
+    </div>
+    <button class="settings-close" onclick="toggleSettings()">Done ✓</button>
+  </div>
+</div>
 
-      <div class="card span12">
-        <h2>The Insurance Line-Up</h2>
-        <div class="miniCards">
-          <div class="mini"><b>Subscriber Plan</b><span>The patient owns this plan. Usually pays before a dependent plan.</span></div>
-          <div class="mini"><b>Active Employment</b><span>Current job coverage usually pays before retiree or COBRA coverage.</span></div>
-          <div class="mini"><b>Injury Source</b><span>Work injury may go to workers’ compensation before regular insurance.</span></div>
-          <div class="mini"><b>Last Resort</b><span>Medicaid usually waits until other available payers are billed.</span></div>
-        </div>
-      </div>
-    </section>
+<!-- AUDIO LOADING -->
+<div class="audio-loading" id="audio-loading"><span class="spinner"></span> Generating voice...</div>
 
-    <section id="rules" class="grid">
-      <div class="card span6">
-        <h2>Core COB Decision Pathway</h2>
-        <div class="pathway">
-          <div class="step"><div class="num">1</div><div><b>Ask why the patient is being seen.</b><small>Work injury? Auto accident? Ordinary visit?</small></div></div>
-          <div class="step"><div class="num">2</div><div><b>Find the patient’s role on each plan.</b><small>Subscriber usually pays before dependent.</small></div></div>
-          <div class="step"><div class="num">3</div><div><b>Compare active, retiree, and COBRA coverage.</b><small>Active employment usually comes first.</small></div></div>
-          <div class="step"><div class="num">4</div><div><b>If plans are equal, check length of coverage.</b><small>The longer active plan may become primary.</small></div></div>
-          <div class="step"><div class="num">5</div><div><b>If Medicaid is involved, place it near the end.</b><small>Medicaid is usually payer of last resort.</small></div></div>
-        </div>
-      </div>
-      <div class="card span6">
-        <h2>Rule Table</h2>
-        <table>
-          <thead><tr><th>Situation</th><th>Usually Primary</th></tr></thead>
-          <tbody>
-            <tr><td>Own plan + spouse’s plan</td><td>Own subscriber plan</td></tr>
-            <tr><td>Active plan + retiree plan</td><td>Active employee plan</td></tr>
-            <tr><td>Active plan + COBRA plan</td><td>Active employee plan</td></tr>
-            <tr><td>Two equal active plans</td><td>Longer coverage plan</td></tr>
-            <tr><td>Regular plan + Medicaid</td><td>Regular plan first</td></tr>
-            <tr><td>Work injury visit</td><td>Workers’ compensation</td></tr>
-          </tbody>
-        </table>
-      </div>
+<!-- STORY -->
+<div id="story-container">
+  <div class="top-controls">
+    <button class="ctrl-btn" id="btn-mute" onclick="toggleMute()" title="Mute">🔊</button>
+    <button class="ctrl-btn" onclick="toggleSettings()" title="Settings">⚙️</button>
+    <button class="ctrl-btn" onclick="goHome()" title="Home">🏠</button>
+  </div>
+  <div class="narration-controls" id="narration-controls" style="display:none;">
+    <button class="ctrl-btn" id="btn-play" onclick="toggleNarration()" title="Play/Pause">▶️</button>
+    <button class="ctrl-btn" onclick="repeatNarration()" title="Repeat">🔄</button>
+  </div>
+  <div class="scene-indicator" id="scene-indicator"></div>
+  <div id="scenes-wrapper"></div>
+  <div class="nav-controls">
+    <button class="nav-btn btn-back" id="btn-prev" onclick="prevScene()">◀ Back</button>
+    <button class="nav-btn btn-next" id="btn-next" onclick="nextScene()">Next ▶</button>
+  </div>
+</div>
 
-      <div class="card span12">
-        <h2>Click-to-Flip Memory Cards</h2>
-        <p>Click each card to reveal the rule.</p>
-        <div class="flipGrid">
-          <div class="flip" onclick="this.classList.toggle('flipped')"><div class="flipInner"><div class="front"><h3>Subscriber vs. Dependent</h3><p>Who pays first?</p></div><div class="back"><h3>Rule</h3><p>The patient’s own subscriber plan usually pays before a plan where the patient is listed as a dependent.</p></div></div></div>
-          <div class="flip" onclick="this.classList.toggle('flipped')"><div class="flipInner"><div class="front"><h3>Active vs. Retired</h3><p>Which plan leads?</p></div><div class="back"><h3>Rule</h3><p>Active employee coverage usually pays before retiree or COBRA coverage.</p></div></div></div>
-          <div class="flip" onclick="this.classList.toggle('flipped')"><div class="flipInner"><div class="front"><h3>Medicaid</h3><p>Where does it go?</p></div><div class="back"><h3>Rule</h3><p>Medicaid usually pays last after other responsible payers have been billed.</p></div></div></div>
-        </div>
-      </div>
-    </section>
+<!-- MORAL -->
+<div class="moral-overlay" id="moral-overlay">
+  <div class="moral-bg"></div>
+  <div class="moral-stars" id="moral-stars"></div>
+  <div class="moral-card">
+    <div class="moral-heart">💛</div>
+    <div class="moral-text">Being kind does not mean letting others control you.<br><br><span style="font-size:0.85em;opacity:0.85;">It's okay to say NO and walk away. 🌿</span></div>
+    <button class="moral-continue-btn" onclick="showQuiz()">Continue to Questions ⭐</button>
+  </div>
+</div>
 
-    <section id="birthday" class="grid">
-      <div class="card span6">
-        <h2>Now Add the Birthday Rule</h2>
-        <p>The birthday rule is not all of COB. It is a special rule for a dependent child covered by both parents’ plans.</p>
-        <div class="bigRule">Earlier birthday in the calendar year = primary plan.</div>
-        <div class="callout purpleLine">Use month and day only. The year does not matter.</div>
-      </div>
-      <div class="card span6">
-        <h2>Same Birthday Tie-Breaker</h2>
-        <p>If both parents have the same birthday, check which parent has been covered by their plan longer.</p>
-        <table>
-          <thead><tr><th>If...</th><th>Then...</th></tr></thead>
-          <tbody>
-            <tr><td>Different birthdays</td><td>Earlier calendar birthday</td></tr>
-            <tr><td>Same birthday</td><td>Longer coverage wins</td></tr>
-            <tr><td>Court order exists</td><td>Follow the court order</td></tr>
-            <tr><td>No order, separated</td><td>Custodial household first</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="card span12">
-        <h2>Custody and Step-Parent Order</h2>
-        <p><b>Custodial parent</b> means the parent the child primarily lives with or the parent who has legal/physical custody. <b>Non-custodial parent</b> means the other parent who does not have primary custody.</p>
-        <div class="bigRule">Separated with no court order: the child’s custodial household comes first.</div>
-        <div class="pathway">
-          <div class="step"><div class="num">1</div><div><b>Custodial parent</b><small>The parent the child lives with most of the time. Example: Mother if the child lives with mother.</small></div></div>
-          <div class="step"><div class="num">2</div><div><b>Custodial parent’s spouse</b><small>The step-parent in the child’s main household. Example: Mother’s husband / step-father.</small></div></div>
-          <div class="step"><div class="num">3</div><div><b>Non-custodial parent</b><small>The other biological/legal parent outside the child’s main household. Example: Father if the child does not live with father.</small></div></div>
-          <div class="step"><div class="num">4</div><div><b>Non-custodial parent’s spouse</b><small>The step-parent in the other household. Example: Father’s wife / step-mother.</small></div></div>
-        </div>
-      </div>
+<!-- QUIZ -->
+<div id="quiz-section"><div class="quiz-container" id="quiz-container"></div></div>
 
-      <div class="card span12">
-        <h2>Who Brought the Child to the Clinic?</h2>
-        <p>In front-desk, billing, and coding situations, do not assume the person who brings the child is automatically the insurance subscriber or the person legally responsible for payment.</p>
-        <table>
-          <thead><tr><th>Term</th><th>Meaning</th><th>Billing Warning</th></tr></thead>
-          <tbody>
-            <tr><td>Accompanying adult</td><td>The adult who brings the child to the visit</td><td>May not be responsible for payment</td></tr>
-            <tr><td>Parent/guardian</td><td>Adult with parental or legal authority</td><td>Can usually consent, depending on policy</td></tr>
-            <tr><td>Guarantor</td><td>Person financially responsible for the bill</td><td>Often listed on the patient account</td></tr>
-            <tr><td>Subscriber</td><td>Person who owns the insurance policy</td><td>Not always the same as guarantor</td></tr>
-            <tr><td>Policyholder</td><td>Another word often used for subscriber</td><td>Verify plan details before billing</td></tr>
-          </tbody>
-        </table>
-        <div class="callout danger"><b>Important:</b> The person who brings the child to the clinic may be an accompanying adult, but the insurance subscriber and guarantor may be different people.</div>
-        <div class="callout success"><b>Billing mindset:</b> Ask: Who has legal authority? Who owns the insurance? Who is financially responsible?</div>
-      </div>
-    </section>
+<script>
+/* ====================================================================
+   SVG BRIDGE — detailed wooden arch bridge with lanterns & planks
+   ==================================================================== */
+function createBridgeSVG() {
+  return `<svg class="bridge-svg" viewBox="0 0 520 165" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <pattern id="wg" width="22" height="12" patternUnits="userSpaceOnUse">
+      <rect width="22" height="12" fill="#9B7530"/>
+      <line x1="0" y1="3" x2="22" y2="3.5" stroke="#876020" stroke-width=".6" opacity=".5"/>
+      <line x1="0" y1="7" x2="22" y2="6.5" stroke="#7a5518" stroke-width=".4" opacity=".4"/>
+      <line x1="0" y1="10" x2="22" y2="9.5" stroke="#876020" stroke-width=".3" opacity=".3"/>
+    </pattern>
+    <pattern id="pk" width="32" height="18" patternUnits="userSpaceOnUse">
+      <rect width="32" height="18" fill="#A88040"/>
+      <rect x="0" y="0" width="31" height="8" fill="#B89040" rx="1"/>
+      <rect x="0" y="9" width="31" height="8" fill="#c49a48" rx="1"/>
+      <line x1="16" y1="0" x2="16" y2="8" stroke="#9a7530" stroke-width=".5"/>
+      <line x1="8" y1="9" x2="8" y2="18" stroke="#9a7530" stroke-width=".5"/>
+      <line x1="24" y1="9" x2="24" y2="18" stroke="#9a7530" stroke-width=".5"/>
+    </pattern>
+    <radialGradient id="lg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFD700" stop-opacity=".7"/>
+      <stop offset="50%" stop-color="#FFA500" stop-opacity=".25"/>
+      <stop offset="100%" stop-color="#FFA500" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="bs"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-opacity=".35"/></filter>
+  </defs>
 
-    <section id="practice" class="grid">
-      <div class="card span12">
-        <h2>Practice Game: Who Pays First?</h2>
-        <p>Answer each question. The choices are randomized each time the page loads. The correct answer is not always in the same position, and answer choices are written with similar length so students cannot game the test. Watch the vocabulary: subscriber, dependent, guarantor, custodial parent, and accompanying adult are not the same thing.</p>
-        <div class="score">
-          <span id="scoreText">Score: 0 / 0</span>
-          <span id="streakText">Streak: 0</span>
-          <span id="levelText">Level: Getting Started</span>
-        </div>
-        <div id="quiz" class="questionCard"></div>
-      </div>
+  <!-- Support pillars -->
+  <rect x="55" y="100" width="20" height="65" fill="url(#wg)" rx="4"/>
+  <rect x="445" y="100" width="20" height="65" fill="url(#wg)" rx="4"/>
+  <rect x="248" y="110" width="18" height="55" fill="url(#wg)" rx="3"/>
 
-      <div class="card span12">
-        <h2>Sorting Challenge</h2>
-        <p>Click each payer in the correct order for a separated-parent case with no court order. Scenario: the child lives with the mother, so the mother is the <b>custodial parent</b>. The father is the <b>non-custodial parent</b>. Mother, step-father, father, and step-mother all have insurance.</p>
-        <div class="dragArea">
-          <div class="bank" id="bank"><h3>Payer Bank</h3></div>
-          <div class="dropZone" id="answerZone"><h3>Your Order</h3></div>
-        </div>
-        <div class="btnRow">
-          <button class="primaryBtn" onclick="checkSort()">Check Order</button>
-          <button class="ghostBtn" onclick="resetSort()">Reset Sort</button>
-        </div>
-        <div id="sortFeedback" class="feedback"></div>
-      </div>
-    </section>
+  <!-- Arch deck -->
+  <path d="M 25 118 Q 150 68 260 62 Q 370 68 495 118" stroke="#7a5518" stroke-width="22" fill="none" stroke-linecap="round" filter="url(#bs)"/>
+  <path d="M 25 118 Q 150 68 260 62 Q 370 68 495 118" stroke="url(#pk)" stroke-width="20" fill="none" stroke-linecap="round"/>
+  <path d="M 30 116 Q 150 67 260 61 Q 370 67 490 116" stroke="rgba(255,255,255,.1)" stroke-width="4" fill="none" stroke-linecap="round"/>
 
-    <p class="footerNote">Teacher note: This activity introduces COB logic for educational practice. Always follow the payer contract, plan policy, state rules, and current billing guidelines in real claims processing.</p>
-  </main>
+  <!-- Railing posts -->
+  <g fill="#7a5518">
+    <rect x="48" y="82" width="6" height="36" rx="2"/>
+    <rect x="95" y="72" width="6" height="35" rx="2"/>
+    <rect x="142" y="63" width="6" height="33" rx="2"/>
+    <rect x="189" y="57" width="6" height="30" rx="2"/>
+    <rect x="236" y="53" width="6" height="28" rx="2"/>
+    <rect x="278" y="53" width="6" height="28" rx="2"/>
+    <rect x="325" y="57" width="6" height="30" rx="2"/>
+    <rect x="372" y="63" width="6" height="33" rx="2"/>
+    <rect x="419" y="72" width="6" height="35" rx="2"/>
+    <rect x="466" y="82" width="6" height="36" rx="2"/>
+  </g>
 
-  <script>
-    const questions = [
-      {
-        category:"COB Basics",
-        question:"A patient has insurance through her own job and also through her spouse. Which plan is usually primary?",
-        choices:[
-          {text:"Her own employer plan", correct:true},
-          {text:"Her spouse employer plan", correct:false},
-          {text:"The lower copay plan", correct:false},
-          {text:"The better benefit plan", correct:false}
-        ],
-        rationale:"The patient is the subscriber on her own employer plan. Subscriber coverage usually pays before dependent coverage."
-      },
-      {
-        category:"COB Basics",
-        question:"A patient is covered as a dependent on one plan and subscriber on another plan. Which rule should guide the biller first?",
-        choices:[
-          {text:"Subscriber plan first", correct:true},
-          {text:"Dependent plan first", correct:false},
-          {text:"Lowest deductible first", correct:false},
-          {text:"Highest premium first", correct:false}
-        ],
-        rationale:"When the patient owns one plan and is only a dependent on another, the subscriber plan usually pays first."
-      },
-      {
-        category:"Active Coverage",
-        question:"A patient has active job insurance and retiree coverage from a former job. Which plan usually pays first?",
-        choices:[
-          {text:"Active job insurance", correct:true},
-          {text:"Retiree job coverage", correct:false},
-          {text:"The older policy plan", correct:false},
-          {text:"The smaller copay plan", correct:false}
-        ],
-        rationale:"Active employee coverage usually pays before retiree coverage. Current active work status matters."
-      },
-      {
-        category:"COBRA",
-        question:"A patient has new active coverage and COBRA from an old employer. Which plan usually comes first?",
-        choices:[
-          {text:"New active coverage", correct:true},
-          {text:"Old COBRA coverage", correct:false},
-          {text:"The lower premium plan", correct:false},
-          {text:"The patient chooses one", correct:false}
-        ],
-        rationale:"Active employment coverage usually pays before COBRA continuation coverage from a previous job."
-      },
-      {
-        category:"Medicaid",
-        question:"A patient has commercial insurance and Medicaid. Which statement is the most accurate for COB?",
-        choices:[
-          {text:"Commercial plan first", correct:true},
-          {text:"Medicaid pays first", correct:false},
-          {text:"Both pay together", correct:false},
-          {text:"Patient chooses order", correct:false}
-        ],
-        rationale:"Medicaid is usually the payer of last resort. Other responsible payers are billed before Medicaid."
-      },
-      {
-        category:"Work Injury",
-        question:"A patient is treated for an injury that happened while lifting boxes at work. Which payer is considered first?",
-        choices:[
-          {text:"Workers compensation", correct:true},
-          {text:"Regular health plan", correct:false},
-          {text:"Spouse health plan", correct:false},
-          {text:"Medicaid assistance", correct:false}
-        ],
-        rationale:"If the visit is related to a workplace injury, workers’ compensation is usually considered before regular health insurance."
-      },
-      {
-        category:"Equal Plans",
-        question:"A patient has two active employer plans. Plan A began in 2020. Plan B began in 2024. Which plan is likely primary?",
-        choices:[
-          {text:"Plan A from 2020", correct:true},
-          {text:"Plan B from 2024", correct:false},
-          {text:"Plan with lower copay", correct:false},
-          {text:"Plan with more visits", correct:false}
-        ],
-        rationale:"When plans are otherwise equal, the plan that has covered the patient longer may become primary."
-      },
-      {
-        category:"Birthday Rule",
-        question:"A child is covered by married parents. Parent A was born in April. Parent B was born in September. Which plan is primary?",
-        choices:[
-          {text:"Parent A April plan", correct:true},
-          {text:"Parent B September plan", correct:false},
-          {text:"The older parent plan", correct:false},
-          {text:"The richer benefit plan", correct:false}
-        ],
-        rationale:"For the birthday rule, the earlier birthday in the calendar year is primary. April comes before September."
-      },
-      {
-        category:"Birthday Rule",
-        question:"A child is covered by both parents. One birthday is December 1 and the other is January 20. Which birthday wins?",
-        choices:[
-          {text:"January twentieth", correct:true},
-          {text:"December first date", correct:false},
-          {text:"The older parent age", correct:false},
-          {text:"The stronger policy", correct:false}
-        ],
-        rationale:"The birthday rule follows month and day in calendar order. January comes before December."
-      },
-      {
-        category:"Same Birthday",
-        question:"Both parents have the same birthday. One plan started in 2021 and the other in 2024. Which plan is primary?",
-        choices:[
-          {text:"Plan started in 2021", correct:true},
-          {text:"Plan started in 2024", correct:false},
-          {text:"Mother always first", correct:false},
-          {text:"Older parent always", correct:false}
-        ],
-        rationale:"If both parents have the same birthday, the plan that covered the parent longer becomes primary."
-      },
-      {
-        category:"Court Order",
-        question:"Divorced parents both cover a child. A court order names father responsible. Mother has earlier birthday. Which plan is primary?",
-        choices:[
-          {text:"Father court-order plan", correct:true},
-          {text:"Mother birthday plan", correct:false},
-          {text:"Plan with lower copay", correct:false},
-          {text:"Plan chosen by child", correct:false}
-        ],
-        rationale:"A court order assigning responsibility can override the birthday rule when the plan has knowledge of the order."
-      },
-      {
-        category:"Custody",
-        question:"Separated parents have no court order. The child lives with father. Mother has earlier birthday. Which plan is primary?",
-        choices:[
-          {text:"Father custodial plan", correct:true},
-          {text:"Mother birthday plan", correct:false},
-          {text:"The older parent plan", correct:false},
-          {text:"The lower copay plan", correct:false}
-        ],
-        rationale:"When parents are separated and there is no court order, the custodial parent’s plan comes first."
-      },
-      {
-        category:"Step-Parent",
-        question:"The child lives with mother. No court order exists. Mother lacks insurance, but step-father and father have plans. Who is primary?",
-        choices:[
-          {text:"Step-father insurance", correct:true},
-          {text:"Father insurance plan", correct:false},
-          {text:"Step-mother coverage", correct:false},
-          {text:"Child chooses payer", correct:false}
-        ],
-        rationale:"If the custodial parent has no plan, the custodial parent’s spouse comes before the non-custodial parent."
-      },
-      {
-        category:"Step-Parent",
-        question:"No court order exists. Child lives with mother. Everyone has insurance. Which order is correct?",
-        choices:[
-          {text:"Mother, step-father, father, step-mother", correct:true},
-          {text:"Father, step-mother, mother, step-father", correct:false},
-          {text:"Mother, father, step-father, step-mother", correct:false},
-          {text:"Step-father, mother, father, step-mother", correct:false}
-        ],
-        rationale:"The order is custodial parent, custodial spouse, non-custodial parent, non-custodial spouse."
-      },
-      {
-        category:"Clinic Vocabulary",
-        question:"A grandmother brings a child to the clinic. She is not listed on the policy or account. What is the safest term?",
-        choices:[
-          {text:"Accompanying adult", correct:true},
-          {text:"Insurance subscriber", correct:false},
-          {text:"Account guarantor", correct:false},
-          {text:"Policyholder adult", correct:false}
-        ],
-        rationale:"The adult who brings the child may simply be the accompanying adult. Do not assume she is the subscriber, guarantor, or legal guardian unless the account confirms it."
-      },
-      {
-        category:"Clinic Vocabulary",
-        question:"In a billing account, what do we call the person financially responsible for the patient balance?",
-        choices:[
-          {text:"Account guarantor", correct:true},
-          {text:"Accompanying adult", correct:false},
-          {text:"Insurance dependent", correct:false},
-          {text:"Non-custodial spouse", correct:false}
-        ],
-        rationale:"The guarantor is the person financially responsible for the bill. The guarantor may be different from the subscriber or the person who brought the child."
-      },
-      {
-        category:"Trap Question",
-        question:"Which detail should not decide primary insurance when COB rules already determine the order?",
-        choices:[
-          {text:"The plan has nicer benefits", correct:true},
-          {text:"The patient is subscriber", correct:false},
-          {text:"The court order applies", correct:false},
-          {text:"The child lives with parent", correct:false}
-        ],
-        rationale:"Better benefits, lower copays, or personal preference do not decide COB order. Actual COB rules decide."
-      }
-    ];
+  <!-- Top rail -->
+  <path d="M 46 82 Q 150 38 260 33 Q 370 38 472 82" stroke="#7a5518" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <path d="M 48 81 Q 150 37 260 32 Q 370 37 470 81" stroke="rgba(255,220,150,.18)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
 
-    let shuffledQuestions = shuffle([...questions]);
-    let current = 0;
-    let correct = 0;
-    let answered = 0;
-    let streak = 0;
+  <!-- Cross braces -->
+  <g stroke="#6a4a15" stroke-width="2" opacity=".45">
+    <line x1="52" y1="110" x2="75" y2="85"/>
+    <line x1="98" y1="100" x2="120" y2="76"/>
+    <line x1="400" y1="76" x2="422" y2="100"/>
+    <line x1="445" y1="85" x2="468" y2="110"/>
+  </g>
 
-    function shuffle(array){
-      for(let i=array.length-1;i>0;i--){
-        const j=Math.floor(Math.random()*(i+1));
-        [array[i],array[j]]=[array[j],array[i]];
-      }
-      return array;
-    }
+  <!-- Vines -->
+  <path d="M 58 90 Q 78 98 98 88" stroke="#5a8a3a" stroke-width="2" fill="none" opacity=".45"/>
+  <path d="M 420 88 Q 440 98 460 90" stroke="#5a8a3a" stroke-width="2" fill="none" opacity=".45"/>
+  <circle cx="68" cy="92" r="2.5" fill="#ff8888" opacity=".5"/>
+  <circle cx="450" cy="92" r="2.5" fill="#ff8888" opacity=".5"/>
 
-    function jump(id){document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'});}
+  <!-- LEFT LANTERN -->
+  <circle cx="148" cy="38" r="22" fill="url(#lg)">
+    <animate attributeName="r" values="20;24;20" dur="3s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values=".6;1;.6" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <rect x="144" y="46" width="8" height="10" fill="#cc8800" rx="2"/>
+  <circle cx="148" cy="49" r="5" fill="#FFD700" opacity=".85">
+    <animate attributeName="opacity" values=".6;1;.6" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <line x1="148" y1="56" x2="148" y2="62" stroke="#7a5518" stroke-width="2"/>
 
-    function updateScore(){
-      document.getElementById('scoreText').textContent = `Score: ${correct} / ${answered}`;
-      document.getElementById('streakText').textContent = `Streak: ${streak}`;
-      const pct = answered ? correct/answered : 0;
-      let level = 'Getting Started';
-      if(answered >= 5 && pct >= .8) level = 'COB Detective';
-      if(answered >= 10 && pct >= .85) level = 'Primary Payer Pro';
-      if(answered >= 14 && pct >= .9) level = 'Billing Boss';
-      document.getElementById('levelText').textContent = `Level: ${level}`;
-    }
+  <!-- RIGHT LANTERN -->
+  <circle cx="370" cy="38" r="22" fill="url(#lg)">
+    <animate attributeName="r" values="20;24;20" dur="3s" repeatCount="indefinite" begin="1.5s"/>
+    <animate attributeName="opacity" values=".6;1;.6" dur="3s" repeatCount="indefinite" begin="1.5s"/>
+  </circle>
+  <rect x="366" y="46" width="8" height="10" fill="#cc8800" rx="2"/>
+  <circle cx="370" cy="49" r="5" fill="#FFD700" opacity=".85">
+    <animate attributeName="opacity" values=".6;1;.6" dur="2s" repeatCount="indefinite" begin="1s"/>
+  </circle>
+  <line x1="370" y1="56" x2="370" y2="62" stroke="#7a5518" stroke-width="2"/>
 
-    function renderQuiz(){
-      const box = document.getElementById('quiz');
-      if(current >= shuffledQuestions.length){
-        const pct = answered ? Math.round((correct/answered)*100) : 0;
-        box.innerHTML = `
-          <div class="qTop"><span class="pill purple">Final Report</span><span class="pill green">${pct}%</span></div>
-          <h2>Game Complete</h2>
-          <p>You answered ${correct} out of ${answered} correctly.</p>
-          <div class="callout ${pct>=80?'success':'danger'}">
-            ${pct>=80 ? 'Strong work. You can identify primary payers using COB logic.' : 'Review subscriber vs. dependent, active vs. retiree/COBRA, Medicaid last, and custody order.'}
-          </div>
-          <div class="btnRow">
-            <button class="primaryBtn" onclick="restartQuiz()">Restart Game</button>
-            <button class="ghostBtn" onclick="window.print()">Print Results</button>
-          </div>
-        `;
-        return;
-      }
-      const q = shuffledQuestions[current];
-      const choices = shuffle([...q.choices]);
-      box.innerHTML = `
-        <div class="qTop">
-          <span class="pill blue">Question ${current+1} of ${shuffledQuestions.length}</span>
-          <span class="pill yellow">${q.category}</span>
-        </div>
-        <div class="questionText">${q.question}</div>
-        <div class="choices">
-          ${choices.map((c,i)=>`<button class="choice" onclick="selectChoice(this, ${c.correct})"><span class="letter">${String.fromCharCode(65+i)}</span><span>${c.text}</span></button>`).join('')}
-        </div>
-        <div id="feedback" class="feedback"></div>
-        <div class="btnRow">
-          <button id="nextBtn" class="primaryBtn hidden" onclick="nextQuestion()">Next Question</button>
-        </div>
-      `;
-    }
+  <!-- Moss/flowers -->
+  <circle cx="80" cy="108" r="3" fill="#88cc88" opacity=".6"/>
+  <circle cx="440" cy="108" r="3" fill="#88cc88" opacity=".6"/>
+</svg>`;
+}
 
-    function selectChoice(btn,isCorrect){
-      const q = shuffledQuestions[current];
-      document.querySelectorAll('.choice').forEach(b=>b.disabled=true);
-      answered++;
-      const fb = document.getElementById('feedback');
-      if(isCorrect){
-        correct++;
-        streak++;
-        btn.classList.add('correct');
-        fb.style.borderLeftColor = 'var(--green)';
-        fb.innerHTML = `<b>Correct.</b> ${q.rationale}`;
-      }else{
-        streak = 0;
-        btn.classList.add('wrong');
-        document.querySelectorAll('.choice').forEach(b=>{
-          if(b.textContent.includes(q.choices.find(c=>c.correct).text)) b.classList.add('correct');
-        });
-        fb.style.borderLeftColor = 'var(--red)';
-        fb.innerHTML = `<b>Not quite.</b> ${q.rationale}`;
-      }
-      fb.style.display='block';
-      document.getElementById('nextBtn').classList.remove('hidden');
-      updateScore();
-    }
+/* ==================================================================== */
+const scenes = [
+  { id:1, bg:'day', text:'Deep in a beautiful green forest, there was a little wooden bridge over a sparkling river. Three best friends lived nearby.',
+    characters:[ {emoji:'🐷',x:'20%',y:'35%',anim:'char-bounce'}, {emoji:'🐰',x:'42%',y:'33%',anim:'char-bounce'}, {emoji:'🐻',x:'64%',y:'30%',anim:'char-bounce'} ],
+    narration:'Deep in a beautiful green forest, there was a little wooden bridge over a sparkling river. Three best friends lived nearby.', voice:'narrator', showBridge:true },
+  { id:2, bg:'day', text:'<span class="speaker-name speaker-pippa">Pippa</span> the Pig was sweet and shy. <span class="speaker-name speaker-rory">Rory</span> the Rabbit loved to hop and play. <span class="speaker-name speaker-bram">Bram</span> the Bear was calm and wise. Every day, they crossed the bridge together.',
+    characters:[ {emoji:'🐷',x:'18%',y:'34%',anim:'char-bounce'}, {emoji:'🐰',x:'45%',y:'32%',anim:'char-bounce'}, {emoji:'🐻',x:'68%',y:'29%',anim:'char-bounce'} ],
+    narration:'Pippa the Pig was sweet and shy. Rory the Rabbit loved to hop and play. Bram the Bear was calm and wise. Every day, they crossed the little bridge together, laughing and singing.', voice:'narrator', showBridge:true },
+  { id:3, bg:'day', text:'One day, a loud crow named <span class="speaker-name speaker-cass">Cass</span> landed on the bridge. <span class="dialogue">"Nobody crosses unless they do something for me first!"</span> he shouted.',
+    characters:[ {emoji:'🐦‍⬛',x:'42%',y:'18%',anim:'char-talk',size:'5rem'} ],
+    narration:'One day, a loud crow named Cass landed right on the middle of the bridge. "Nobody crosses unless they do something for me first!" he shouted in a big, bossy voice.', voice:'cass', showBridge:true },
+  { id:4, bg:'day', text:'The forest animals were afraid. One gave berries. One carried heavy sticks. One gave a pretty ribbon. <span class="speaker-name speaker-cass">Cass</span> smiled. <span class="dialogue">"Good!"</span>',
+    characters:[ {emoji:'🐿️',x:'15%',y:'38%'}, {emoji:'🦆',x:'35%',y:'36%'}, {emoji:'🐭',x:'55%',y:'39%'}, {emoji:'🐦‍⬛',x:'42%',y:'16%',anim:'char-talk'} ],
+    narration:'The forest animals were afraid of Cass. A little squirrel gave berries. A duck carried heavy sticks. A tiny mouse gave a pretty ribbon. Cass smiled and said, "Good!"', voice:'narrator', showBridge:true },
+  { id:5, bg:'day', text:'<span class="speaker-name speaker-pippa">Pippa</span> watched quietly. <span class="dialogue">"Why are they giving him their things?"</span> she whispered. <span class="dialogue">"Because they are scared,"</span> said <span class="speaker-name speaker-rory">Rory</span>.',
+    characters:[ {emoji:'🐷',x:'22%',y:'35%'}, {emoji:'🐰',x:'45%',y:'33%'}, {emoji:'🐻',x:'65%',y:'30%'} ],
+    narration:'Pippa watched quietly. "Why are they giving him their things?" she whispered to her friends. "Because they are scared," said Rory softly.', voice:'pippa', showBridge:false },
+  { id:6, bg:'day', text:'The next day, <span class="speaker-name speaker-cass">Cass</span> said to <span class="speaker-name speaker-pippa">Pippa</span>, <span class="dialogue">"Carry these rocks for me first!"</span> <span class="dialogue">"They are too heavy,"</span> said Pippa quietly.',
+    characters:[ {emoji:'🐦‍⬛',x:'55%',y:'22%',anim:'char-talk',size:'4.5rem'}, {emoji:'🐷',x:'28%',y:'37%'} ],
+    narration:'The next day, Cass said to Pippa, "Carry these rocks for me first!" The rocks were big and heavy. "They are too heavy," said Pippa quietly. She felt a heavy feeling in her tummy.', voice:'cass', showBridge:true },
+  { id:7, bg:'day', text:'<span class="speaker-name speaker-cass">Cass</span> said, <span class="dialogue">"If you don\'t help me, I will make trouble for you."</span> <span class="speaker-name speaker-pippa">Pippa</span> felt a heavy rock in her tummy.',
+    characters:[ {emoji:'🐦‍⬛',x:'55%',y:'20%',anim:'char-talk',size:'5rem'}, {emoji:'🐷',x:'28%',y:'38%'} ],
+    narration:'Cass said in a firm voice, "If you don\'t help me, I will make trouble for you." Pippa felt a heavy rock in her tummy. She felt scared and didn\'t know what to do.', voice:'cass', showBridge:true },
+  { id:8, bg:'day', text:'Then <span class="speaker-name speaker-pippa">Pippa</span> remembered something <span class="speaker-name speaker-bram">Bram</span> once told her: <span class="dialogue">"A kind heart does not mean becoming small for others."</span>',
+    characters:[ {emoji:'🐷',x:'30%',y:'35%'}, {emoji:'🐻',x:'58%',y:'30%',anim:'char-talk'}, {emoji:'💛',x:'44%',y:'15%',anim:'anim-heartbeat'} ],
+    narration:'Then Pippa remembered something special. Her friend Bram once told her: "A kind heart does not mean becoming small for others." Those words made Pippa feel a little bit braver inside.', voice:'bram', showBridge:false },
+  { id:9, bg:'day', text:'<span class="speaker-name speaker-pippa">Pippa</span> looked at <span class="speaker-name speaker-cass">Cass</span> and asked, <span class="dialogue">"Why should I carry your rocks?"</span> Cass was surprised. No one had ever asked him that before.',
+    characters:[ {emoji:'🐷',x:'28%',y:'35%',anim:'char-talk'}, {emoji:'🐦‍⬛',x:'58%',y:'24%'} ],
+    narration:'Pippa took a deep breath. She looked at Cass and asked in a clear voice, "Why should I carry your rocks?" Cass was very surprised! No one had ever asked him that before.', voice:'pippa', showBridge:true },
+  { id:10, bg:'day', text:'<span class="dialogue">"I said DO IT!"</span> <span class="speaker-name speaker-cass">Cass</span> shouted. But <span class="speaker-name speaker-pippa">Pippa</span> took a deep breath and walked away. Calmly.',
+    characters:[ {emoji:'🐦‍⬛',x:'58%',y:'22%',anim:'char-talk',size:'4.5rem'}, {emoji:'🐷',x:'18%',y:'37%'} ],
+    narration:'"I said DO IT!" Cass shouted loudly. But Pippa did something very brave. She took a deep, slow breath, and she walked away. Calmly. Quietly. Bravely.', voice:'narrator', showBridge:true },
+  { id:11, bg:'day', text:'<span class="speaker-name speaker-pippa">Pippa</span> told <span class="speaker-name speaker-bram">Bram</span> what happened. Bram said, <span class="dialogue">"Sometimes others use fear to feel big. Someone else\'s anger is not your job."</span>',
+    characters:[ {emoji:'🐷',x:'30%',y:'37%'}, {emoji:'🐻',x:'58%',y:'31%',anim:'char-talk'} ],
+    narration:'Pippa told Bram everything that happened. Bram smiled gently and said, "Sometimes others use fear to feel big. But remember, someone else\'s anger is not your job." Pippa felt safe.', voice:'bram', showBridge:false },
+  { id:12, bg:'day', text:'The next day, <span class="speaker-name speaker-pippa">Pippa</span> walked across the bridge with her friends. The other animals stopped giving <span class="speaker-name speaker-cass">Cass</span> their things too.',
+    characters:[ {emoji:'🐷',x:'18%',y:'33%',anim:'char-bounce'}, {emoji:'🐰',x:'35%',y:'31%',anim:'char-bounce'}, {emoji:'🐻',x:'52%',y:'28%',anim:'char-bounce'}, {emoji:'🐿️',x:'68%',y:'33%',anim:'char-bounce'} ],
+    narration:'The next day, Pippa walked across the bridge with all her friends. Rory hopped beside her. Bram walked behind her. And the other animals stopped giving Cass their things too. Together, they were all brave!', voice:'narrator', showBridge:true },
+  { id:13, bg:'sunset', text:'<span class="speaker-name speaker-pippa">Pippa</span> felt taller inside. She learned that she can be kind without letting others control her. 🌅',
+    characters:[ {emoji:'🐷',x:'30%',y:'31%',anim:'char-bounce'}, {emoji:'🐰',x:'47%',y:'29%',anim:'char-bounce'}, {emoji:'🐻',x:'62%',y:'27%',anim:'char-bounce'} ],
+    narration:'Pippa felt taller inside. She learned something very important. She can be kind and still be strong. She can say no, and still be a good friend. And that made her feel like the bravest little pig in the whole forest.', voice:'narrator', showBridge:true, isEnding:true }
+];
 
-    function nextQuestion(){current++; renderQuiz();}
-    function restartQuiz(){shuffledQuestions = shuffle([...questions]); current=0; correct=0; answered=0; streak=0; updateScore(); renderQuiz();}
+const quizData = [
+  { question:"Was Pippa weak or strong when she walked away from Cass?", emoji:"💪",
+    options:["Very strong!","Very weak","I don't know"], correct:0,
+    feedback:"That's right! Walking away from someone who is being mean takes a LOT of courage. Pippa was very, very strong! 🌟" },
+  { question:"What did Bram say about having a kind heart?", emoji:"💛",
+    options:["A kind heart means saying yes to everything","A kind heart does not mean becoming small for others","A kind heart means giving everything away"], correct:1,
+    feedback:"Exactly! Being kind is wonderful, but you never have to make yourself small just to make someone else happy. 🐻💛" },
+  { question:"If someone tells you to do something that feels wrong, what can you do?", emoji:"🤔",
+    options:["Say 'no' and walk away","Do it anyway","Hide and cry"], correct:0,
+    feedback:"Yes! It is always okay to say 'no' if something feels wrong. You can walk away and tell someone you trust. You are allowed to feel safe! 🌿" },
+  { question:"Why did the other animals give Cass their things?", emoji:"😟",
+    options:["Because they liked Cass","Because they were scared","Because Cass asked nicely"], correct:1,
+    feedback:"That's right. The animals were scared. But nobody should have to give things away just because they feel scared. Pippa showed them that it's okay to be brave! ⭐" },
+  { question:"What is the most important thing Pippa learned?", emoji:"🌟",
+    options:["To never be kind again","You can be kind AND strong at the same time","To always do what others tell you"], correct:1,
+    feedback:"Wonderful! You can be the kindest person and still stand up for yourself. Kindness and bravery go together like sunshine and flowers! 🌻💛" }
+];
 
-    const sortCorrect = ['Mother plan — custodial parent','Step-father plan — custodial spouse','Father plan — non-custodial parent','Step-mother plan — non-custodial spouse'];
-    let sortChosen = [];
-    function resetSort(){
-      sortChosen = [];
-      const bank = document.getElementById('bank');
-      const zone = document.getElementById('answerZone');
-      bank.innerHTML = '<h3>Payer Bank</h3>';
-      zone.innerHTML = '<h3>Your Order</h3>';
-      shuffle([...sortCorrect]).forEach(item=>{
-        const b=document.createElement('button');
-        b.className='sortItem';
-        b.textContent=item;
-        b.onclick=()=>moveSortItem(b,item);
-        bank.appendChild(b);
-      });
-      const fb=document.getElementById('sortFeedback');
-      fb.style.display='none';
-    }
-    function moveSortItem(btn,item){
-      sortChosen.push(item);
-      btn.remove();
-      const zone=document.getElementById('answerZone');
-      const itemDiv=document.createElement('div');
-      itemDiv.className='sortItem';
-      itemDiv.textContent = `${sortChosen.length}. ${item}`;
-      zone.appendChild(itemDiv);
-    }
-    function checkSort(){
-      const fb=document.getElementById('sortFeedback');
-      if(sortChosen.length !== sortCorrect.length){
-        fb.style.display='block';
-        fb.style.borderLeftColor='var(--orange)';
-        fb.innerHTML='<b>Keep going.</b> Add all four payers before checking the order.';
-        return;
-      }
-      const ok = sortChosen.every((x,i)=>x===sortCorrect[i]);
-      fb.style.display='block';
-      if(ok){
-        fb.style.borderLeftColor='var(--green)';
-        fb.innerHTML='<b>Correct.</b> The mother is the custodial parent because the child lives with her. With no court order, the order is: custodial parent, custodial spouse, non-custodial parent, then non-custodial spouse.';
-      }else{
-        fb.style.borderLeftColor='var(--red)';
-        fb.innerHTML='<b>Review this rule.</b> The mother is the custodial parent because the child lives with her. The father is the non-custodial parent. Correct order: mother\'s plan, step-father\'s plan, father\'s plan, then step-mother\'s plan. The custodial household comes before the non-custodial household.';
-      }
-    }
+// === STATE ===
+let currentScene=0, storyMode='readMyself', isMuted=false, isAutoplay=false, ambientEnabled=true;
+let bedtimeMusicEnabled=false, isSpeaking=false, currentAudioEl=null, audioCtx=null, ambientNodes={};
+let quizIndex=0, score=0;
 
-    renderQuiz();
-    resetSort();
-    updateScore();
-  </script>
+// === OPENAI TTS ===
+function getOpenAIKey(){ const el=document.getElementById('openai-key'); return el?el.value.trim():''; }
+function checkApiKey(){ const k=getOpenAIKey(), s=document.getElementById('api-status');
+  if(k&&k.startsWith('sk-')){s.textContent='🟢 Key entered — AI voices active';s.className='api-status connected';}
+  else{s.textContent='⚪ Using browser voices';s.className='api-status disconnected';} }
+
+const oaiVoice={narrator:'fable',pippa:'shimmer',rory:'nova',bram:'onyx',cass:'echo'};
+const oaiSpeed={narrator:0.95,pippa:0.9,rory:1.05,bram:0.85,cass:1.0};
+
+async function speakWithOpenAI(text,voiceType){
+  const key=getOpenAIKey(); if(!key) return false;
+  const voice=oaiVoice[voiceType]||'fable', speed=oaiSpeed[voiceType]||1, ld=document.getElementById('audio-loading');
+  try{ ld.classList.add('show');
+    const r=await fetch('https://api.openai.com/v1/audio/speech',{method:'POST',headers:{'Authorization':'Bearer '+key,'Content-Type':'application/json'},
+      body:JSON.stringify({model:'tts-1',input:text,voice,speed,response_format:'mp3'})});
+    ld.classList.remove('show');
+    if(!r.ok){console.warn('OpenAI TTS:',r.status);return false;}
+    const blob=await r.blob(), url=URL.createObjectURL(blob);
+    stopAllAudio();
+    const a=new Audio(url); currentAudioEl=a; isSpeaking=true;
+    document.getElementById('btn-play').textContent='⏸️';
+    const words=text.split(/\s+/), we=document.querySelectorAll(`[data-scene="${currentScene}"]`);
+    const avgD=(text.length/15)/words.length; let wi=0;
+    const hi=setInterval(()=>{ if(wi<we.length){we.forEach(w=>w.classList.remove('active')); if(we[wi])we[wi].classList.add('active'); wi++;} },avgD*1000);
+    a.onended=()=>{ clearInterval(hi); we.forEach(w=>w.classList.remove('active')); isSpeaking=false; currentAudioEl=null;
+      document.getElementById('btn-play').textContent='▶️'; URL.revokeObjectURL(url);
+      if(isAutoplay&&currentScene<scenes.length-1) setTimeout(()=>nextScene(),1500);
+      else if(isAutoplay&&currentScene===scenes.length-1) setTimeout(()=>showMoral(),2000); };
+    a.play(); return true;
+  }catch(e){ ld.classList.remove('show'); console.warn('OpenAI fail:',e); return false; }
+}
+
+// === BROWSER TTS ===
+function getVS(v){ const s={narrator:{pitch:1,rate:.85,vol:1},pippa:{pitch:1.4,rate:.82,vol:.9},rory:{pitch:1.2,rate:1,vol:1},bram:{pitch:.7,rate:.75,vol:1},cass:{pitch:.9,rate:.95,vol:1}}; return s[v]||s.narrator; }
+function speakBrowser(text,vt,si){
+  const u=new SpeechSynthesisUtterance(text), vs=getVS(vt);
+  u.pitch=vs.pitch; u.rate=vs.rate; u.volume=vs.vol; u.lang='en-US';
+  const voices=speechSynthesis.getVoices(); if(voices.length){const en=voices.filter(v=>v.lang.startsWith('en')); if(en.length)u.voice=en[0];}
+  let wi=0; const we=document.querySelectorAll(`[data-scene="${si}"]`);
+  u.onboundary=e=>{ if(e.name==='word'&&wi<we.length){we.forEach(w=>w.classList.remove('active')); if(we[wi])we[wi].classList.add('active'); wi++;} };
+  u.onend=()=>{ isSpeaking=false; we.forEach(w=>w.classList.remove('active')); document.getElementById('btn-play').textContent='▶️';
+    if(isAutoplay&&currentScene<scenes.length-1) setTimeout(()=>nextScene(),1500);
+    else if(isAutoplay&&currentScene===scenes.length-1) setTimeout(()=>showMoral(),2000); };
+  u.onstart=()=>{ isSpeaking=true; document.getElementById('btn-play').textContent='⏸️'; };
+  speechSynthesis.speak(u);
+}
+speechSynthesis.onvoiceschanged=function(){};
+
+// === UNIFIED NARRATION ===
+async function narrateScene(si){ if(isMuted)return; const s=scenes[si]; if(!s||!s.narration)return; stopAllAudio();
+  const ok=await speakWithOpenAI(s.narration,s.voice); if(!ok) speakBrowser(s.narration,s.voice,si); }
+function stopAllAudio(){ speechSynthesis.cancel(); if(currentAudioEl){currentAudioEl.pause();currentAudioEl.currentTime=0;currentAudioEl=null;}
+  isSpeaking=false; const b=document.getElementById('btn-play'); if(b)b.textContent='▶️'; }
+function toggleNarration(){ if(currentAudioEl){if(isSpeaking){currentAudioEl.pause();isSpeaking=false;document.getElementById('btn-play').textContent='▶️';}
+  else{currentAudioEl.play();isSpeaking=true;document.getElementById('btn-play').textContent='⏸️';}}
+  else if(isSpeaking){speechSynthesis.pause();isSpeaking=false;document.getElementById('btn-play').textContent='▶️';}
+  else if(speechSynthesis.paused){speechSynthesis.resume();isSpeaking=true;document.getElementById('btn-play').textContent='⏸️';}
+  else narrateScene(currentScene); }
+function repeatNarration(){ stopAllAudio(); setTimeout(()=>narrateScene(currentScene),300); }
+
+// === INIT ===
+window.addEventListener('load',()=>{
+  let p=0; const lb=document.getElementById('loading-bar');
+  const li=setInterval(()=>{ p+=Math.random()*15+5; if(p>=100){p=100;clearInterval(li);
+    setTimeout(()=>{document.getElementById('loading-screen').classList.add('hidden');document.getElementById('title-screen').style.display='';},400);}
+    lb.style.width=p+'%'; },200);
+  buildDots(); buildScenes(); populateMoralStars(); });
+
+function buildDots(){ const c=document.getElementById('scene-indicator');
+  for(let i=0;i<scenes.length;i++){const d=document.createElement('div');d.className='scene-dot'+(i===0?' active':'');c.appendChild(d);} }
+
+function buildScenes(){ const w=document.getElementById('scenes-wrapper');
+  scenes.forEach((s,i)=>{const e=document.createElement('div');e.className='scene'+(i===0?' active':'');e.id='scene-'+i;e.innerHTML=buildHTML(s,i);w.appendChild(e);}); }
+
+function buildHTML(s,idx){
+  const isSunset=s.bg==='sunset', sky=isSunset?'sky-sunset':'sky-day';
+  let chars=''; (s.characters||[]).forEach(c=>{const sz=c.size||'4rem'; chars+=`<div class="character ${c.anim||''}" style="left:${c.x};top:${c.y};font-size:${sz};">${c.emoji}</div>`;});
+  let bridge=''; if(s.showBridge) bridge=`<div class="bridge-container">${createBridgeSVG()}</div>`;
+  let ff=''; if(isSunset||idx>10) for(let i=0;i<15;i++){const x=Math.random()*90+5,y=Math.random()*50+10,d=Math.random()*4,du=3+Math.random()*3;
+    ff+=`<div class="firefly" style="left:${x}%;top:${y}%;animation-delay:${d}s;animation-duration:${du}s;"></div>`;}
+  let lv=''; for(let i=0;i<5;i++){const x=Math.random()*80+10,du=10+Math.random()*8,dl=Math.random()*du,em=Math.random()>.5?'🍃':'🍂',
+    dx=(Math.random()-.5)*200,dy=300+Math.random()*200,rt=360+Math.random()*360;
+    lv+=`<div class="floating-leaf" style="left:${x}%;top:-5%;font-size:${1+Math.random()}rem;animation-duration:${du}s;animation-delay:-${dl}s;--leaf-dx:${dx}px;--leaf-dy:${dy}px;--leaf-rot:${rt}deg;">${em}</div>`;}
+  let tr=''; for(let i=0;i<7;i++){const l=(i/7)*100+Math.random()*6-3,h=50+Math.random()*50,cw=35+Math.random()*35,ch=30+Math.random()*30,
+    sh=30+Math.floor(Math.random()*50),g=isSunset?`rgb(${sh+40},${sh+20},${sh-10})`:`rgb(${sh-10},${sh+60},${sh-10})`;
+    tr+=`<div class="css-tree" style="left:${l}%;"><div class="canopy-el" style="width:${cw}px;height:${ch}px;background:${g};border-radius:50%;"></div><div class="trunk-el" style="height:${h*.4}px;"></div></div>`;}
+  let gr=''; for(let i=0;i<35;i++){const gl=Math.random()*100,gh=8+Math.random()*15,gd=Math.random()*3;
+    gr+=`<div class="grass-blade" style="left:${gl}%;height:${gh}px;animation-delay:${gd}s;"></div>`;}
+  let sp=''; for(let i=0;i<12;i++){const sx=Math.random()*95+2,sy=Math.random()*80+10,sd=Math.random()*3;
+    sp+=`<div class="river-sparkle" style="left:${sx}%;top:${sy}%;animation-delay:${sd}s;"></div>`;}
+  const wt=wrapWords(s.text,idx);
+  return `<div class="forest-bg"><div class="sky-layer ${sky}"></div><div class="cloud cloud-1"></div><div class="cloud cloud-2"></div><div class="cloud cloud-3"></div>
+    <div class="hills-back"></div><div class="hills-front"></div><div class="tree-layer">${tr}</div><div class="ground-layer">${gr}</div>
+    <div class="river"><div class="river-shimmer"></div>${sp}</div>${bridge}${chars}${ff}${lv}</div>
+    <div class="text-panel"><div class="story-text" id="story-text-${idx}">${wt}</div></div>`;
+}
+function wrapWords(html,si){ let wi=0; return html.replace(/(<[^>]+>)|([^<\s]+)/g,(m,tag,word)=>{if(tag)return tag;
+  return `<span class="highlight-word" data-scene="${si}" data-word="${wi++}">${word}</span>`;}); }
+
+// === STORY START ===
+function startStory(mode){ storyMode=mode; document.getElementById('title-screen').style.display='none';
+  document.getElementById('story-container').classList.add('active');
+  if(mode==='readToMe') document.getElementById('narration-controls').style.display='flex';
+  currentScene=0; updateScene(); initAudio(); if(ambientEnabled) playAmbient();
+  if(mode==='readToMe') setTimeout(()=>narrateScene(currentScene),1500); }
+
+// === NAV ===
+function updateScene(){ document.querySelectorAll('.scene').forEach((e,i)=>e.classList.toggle('active',i===currentScene));
+  document.querySelectorAll('.scene-dot').forEach((d,i)=>{d.classList.remove('active','completed');
+    if(i===currentScene)d.classList.add('active'); else if(i<currentScene)d.classList.add('completed');});
+  document.getElementById('btn-prev').style.visibility=currentScene===0?'hidden':'visible';
+  document.getElementById('btn-next').innerHTML=currentScene===scenes.length-1?'🌟 The End':'Next ▶';
+  if(!isMuted)playSFX('whoosh'); }
+function nextScene(){ stopAllAudio(); if(currentScene<scenes.length-1){currentScene++;updateScene();
+    if(storyMode==='readToMe')setTimeout(()=>narrateScene(currentScene),800);} else showMoral(); }
+function prevScene(){ stopAllAudio(); if(currentScene>0){currentScene--;updateScene();
+    if(storyMode==='readToMe')setTimeout(()=>narrateScene(currentScene),800);} }
+function goHome(){ stopAllAudio(); stopAmbient();
+  document.getElementById('story-container').classList.remove('active');document.getElementById('title-screen').style.display='';
+  document.getElementById('moral-overlay').classList.remove('active');document.getElementById('quiz-section').classList.remove('active');
+  currentScene=0; updateScene(); }
+
+// === AUDIO ===
+function initAudio(){ if(audioCtx)return; try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){} }
+function playSFX(type){ if(!audioCtx||isMuted)return; try{ const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime;
+  o.connect(g);g.connect(audioCtx.destination);
+  if(type==='whoosh'){o.type='sine';o.frequency.setValueAtTime(400,t);o.frequency.exponentialRampToValueAtTime(200,t+.3);g.gain.setValueAtTime(.07,t);g.gain.exponentialRampToValueAtTime(.001,t+.3);o.start(t);o.stop(t+.3);}
+  else if(type==='magic'){o.type='sine';o.frequency.setValueAtTime(600,t);o.frequency.exponentialRampToValueAtTime(1200,t+.5);g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.001,t+.6);o.start(t);o.stop(t+.6);}
+  else if(type==='correct'){o.type='sine';o.frequency.setValueAtTime(523,t);o.frequency.setValueAtTime(659,t+.15);o.frequency.setValueAtTime(784,t+.3);g.gain.setValueAtTime(.1,t);g.gain.exponentialRampToValueAtTime(.001,t+.5);o.start(t);o.stop(t+.5);}
+  else if(type==='stars'){o.type='triangle';o.frequency.setValueAtTime(800,t);o.frequency.exponentialRampToValueAtTime(1600,t+.8);g.gain.setValueAtTime(.05,t);g.gain.exponentialRampToValueAtTime(.001,t+1);o.start(t);o.stop(t+1);}
+  }catch(e){} }
+function playAmbient(){ if(!audioCtx||!ambientEnabled||isMuted)return; try{ const bs=audioCtx.sampleRate*2,b=audioCtx.createBuffer(1,bs,audioCtx.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<bs;i++)d[i]=(Math.random()*2-1)*.012; const s=audioCtx.createBufferSource();s.buffer=b;s.loop=true;
+  const f=audioCtx.createBiquadFilter();f.type='lowpass';f.frequency.value=500; const gn=audioCtx.createGain();gn.gain.value=.2;
+  s.connect(f);f.connect(gn);gn.connect(audioCtx.destination);s.start(); ambientNodes.source=s;ambientNodes.gain=gn; }catch(e){} }
+function stopAmbient(){ if(ambientNodes.source){try{ambientNodes.source.stop();}catch(e){} ambientNodes={};} }
+function playBedtime(){ if(!audioCtx||isMuted)return; try{ const n=[523,587,659,523,587,659,784,659,587,523],t=audioCtx.currentTime;
+  n.forEach((f,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.value=f;o.connect(g);g.connect(audioCtx.destination);
+  g.gain.setValueAtTime(0,t+i*.8);g.gain.linearRampToValueAtTime(.04,t+i*.8+.1);g.gain.linearRampToValueAtTime(0,t+i*.8+.75);o.start(t+i*.8);o.stop(t+i*.8+.8);}); }catch(e){} }
+
+// === SETTINGS ===
+function toggleSettings(){document.getElementById('settings-panel').classList.toggle('show');}
+function toggleDyslexia(){document.body.classList.toggle('dyslexia-mode');document.getElementById('toggle-dyslexia').classList.toggle('on');}
+function toggleLargeText(){document.body.classList.toggle('large-text');document.getElementById('toggle-large').classList.toggle('on');}
+function toggleBedtimeMusic(){bedtimeMusicEnabled=!bedtimeMusicEnabled;document.getElementById('toggle-music').classList.toggle('on');if(bedtimeMusicEnabled){initAudio();playBedtime();}}
+function toggleAutoplay(){isAutoplay=!isAutoplay;document.getElementById('toggle-autoplay').classList.toggle('on');}
+function toggleAmbient(){ambientEnabled=!ambientEnabled;document.getElementById('toggle-ambient').classList.toggle('on');if(ambientEnabled){initAudio();playAmbient();}else stopAmbient();}
+function toggleMute(){isMuted=!isMuted;document.getElementById('btn-mute').textContent=isMuted?'🔇':'🔊';if(isMuted){stopAllAudio();stopAmbient();}}
+
+// === MORAL ===
+function populateMoralStars(){ const c=document.getElementById('moral-stars');
+  for(let i=0;i<30;i++){const s=document.createElement('div');s.className='moral-star';s.textContent='✨';
+  s.style.left=Math.random()*90+5+'%';s.style.top=Math.random()*50+'%';s.style.animationDelay=Math.random()*3+'s';
+  s.style.animationDuration=(2+Math.random()*3)+'s';s.style.fontSize=(.8+Math.random()*1.2)+'rem';c.appendChild(s);} }
+function showMoral(){ document.getElementById('story-container').classList.remove('active');document.getElementById('moral-overlay').classList.add('active');
+  if(!isMuted){playSFX('magic');if(storyMode==='readToMe'){
+    speakWithOpenAI('Being kind does not mean letting others control you. It is okay to say no and walk away.','narrator').then(ok=>{
+      if(!ok){const u=new SpeechSynthesisUtterance('Being kind does not mean letting others control you. It is okay to say no and walk away.');u.pitch=1;u.rate=.8;speechSynthesis.speak(u);}});}}}
+
+// === QUIZ ===
+function showQuiz(){document.getElementById('moral-overlay').classList.remove('active');document.getElementById('quiz-section').classList.add('active');quizIndex=0;score=0;renderQuiz();}
+function renderQuiz(){ const c=document.getElementById('quiz-container'); if(quizIndex>=quizData.length){renderReward();return;}
+  const q=quizData[quizIndex]; c.innerHTML=`<div class="quiz-card"><div class="quiz-emoji">${q.emoji}</div>
+  <div class="quiz-question-number">Question ${quizIndex+1} of ${quizData.length}</div>
+  <div class="quiz-question">${q.question}</div>
+  <div class="quiz-options">${q.options.map((o,i)=>`<button class="quiz-option" data-index="${i}" onclick="answerQuiz(${i})">${o}</button>`).join('')}</div>
+  <div id="quiz-feedback-area"></div></div>`; }
+function answerQuiz(sel){ const q=quizData[quizIndex],opts=document.querySelectorAll('.quiz-option'),fb=document.getElementById('quiz-feedback-area');
+  opts.forEach(o=>{o.style.pointerEvents='none';const i=parseInt(o.dataset.index);if(i===q.correct)o.classList.add('correct');else if(i===sel&&sel!==q.correct)o.classList.add('also-ok');});
+  if(sel===q.correct)score++; if(!isMuted&&sel===q.correct)playSFX('correct');
+  const pre=sel===q.correct?'⭐ ':"That's a great try! 💛 ";
+  fb.innerHTML=`<div class="quiz-feedback positive">${pre}${q.feedback}</div><button class="quiz-next-btn" onclick="nextQuiz()">Next Question ▶</button>`; }
+function nextQuiz(){quizIndex++;renderQuiz();}
+function renderReward(){if(!isMuted)playSFX('stars');const c=document.getElementById('quiz-container'),h='💛'.repeat(score)+'🤍'.repeat(quizData.length-score);
+  c.innerHTML=`<div class="reward-screen"><div class="reward-stars">🌟⭐🌟⭐🌟</div><div class="reward-title">You Did Amazing!</div>
+  <div class="reward-message">You answered ${score} out of ${quizData.length} questions!<br><br>You are kind, brave, and strong —<br>just like Pippa! 🐷💛</div>
+  <div style="font-size:2rem;margin-bottom:25px;">${h}</div><button class="reward-btn" onclick="goHome()">🏠 Back to Start</button></div>`; }
+
+// === INPUT ===
+document.addEventListener('keydown',e=>{if(document.getElementById('story-container').classList.contains('active')){
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();nextScene();}else if(e.key==='ArrowLeft'){e.preventDefault();prevScene();}}});
+let touchX=0;
+document.addEventListener('touchstart',e=>{touchX=e.touches[0].clientX;},{passive:true});
+document.addEventListener('touchend',e=>{if(!document.getElementById('story-container').classList.contains('active'))return;
+  const dx=e.changedTouches[0].clientX-touchX;if(Math.abs(dx)>60){if(dx<0)nextScene();else prevScene();}},{passive:true});
+</script>
 </body>
 </html>
